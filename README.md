@@ -2,7 +2,7 @@
 
 A complete three-service cloud application for organizing blood donation drives. Organizers publish drives and time slots, donors register and book a seat, and the Booking service checks eligibility, reserves seats atomically, records attendance and sends confirmations/reminders.
 
-This README is the **manual setup and deployment guide**. A deeper implementation walkthrough is in [`FULL_PROJECT_GUIDE.md`](FULL_PROJECT_GUIDE.md). Report material is in [`docs/`](docs/).
+This README is the **manual setup and deployment guide**. A deeper implementation walkthrough is in [`FULL_PROJECT_GUIDE.md`](FULL_PROJECT_GUIDE.md). Report material is in [`docs/`](docs/). The hand-over checklist of everything still needed from the team (GitHub identities, Cloudflare/Neon secrets, video, evidence and final tagging) is in [`FINALIZATION_README.md`](FINALIZATION_README.md).
 
 ---
 
