@@ -185,7 +185,7 @@ curl https://<booking-worker>/api/health/booking
 |---|---|---|
 | DON-16 live | Add a real Turnstile test key as a Worker secret, load the SPA, complete the widget, register once | The missing-token branch is evidenced; real widget validation is not |
 | Email live | Set `BREVO_API_KEY` and `EMAIL_FROM`, send **one** controlled reminder, capture `status:"sent"` and the provider message id | Log mode is currently the only email evidence |
-| E2E-06 | Repeat the full smoke flow using the public Worker URLs (`BDO_API_URL=<booking-worker>` and `BDO_DRIVE_URL`, `BDO_DONOR_URL`, `BDO_BOOKING_URL` if supported by `.data/smoke.mjs`) | Public deployed integration is required |
+| E2E-06 | Repeat the full smoke flow with `BDO_API_URL=''`, `BDO_DRIVE_URL`, `BDO_DONOR_URL` and `BDO_BOOKING_URL` set to the public Workers, then `npm run smoke` | Public deployed integration is required |
 | Per-endpoint evidence | One `curl -i` or Postman request/response per row of `docs/api.md` | Report sections 3 and 9 |
 | Frontend screenshots | `#/organizer` (create form, slots, Bookings, Emails, Report tabs), `#/register`, `#/profile`, `#/bookings` | Individual statements, items 2 |
 | Error evidence | `400`, `401`, `403`, `404`, `409`, `429`, `502` responses | Brief explicitly asks for invalid cases |

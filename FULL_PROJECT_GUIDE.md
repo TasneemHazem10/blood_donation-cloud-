@@ -184,7 +184,7 @@ npm test -w @bdo/booking
 
 `npm test` runs **53 tests, 53 pass, 0 fail**, across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`. `docs/testing.md` keeps the DRV-01–13, DON-01–16, BOK-01–19 and E2E-01–06 case IDs; fill its Actual/Result columns only after capturing output.
 
-Local smoke `.data/smoke.mjs` reports **22 PASS**: register/login, drive and slot, eligibility, booking `201`, duplicate `409`, reminders (1 sent + 1 skipped), check-in `attended`, donation recorded, report `{booked:1,attended:1,turnout:100,storage:"database"}`, and 401/403/404/400/409 cases. It creates fresh accounts each run and supports `BDO_API_URL` for Floci. Floci smoke through the API Gateway also reports **22 PASS**, with report `storage:"s3"`. Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in are verified.
+Local smoke `scripts/smoke.mjs` reports **22 PASS**: register/login, drive and slot, eligibility, booking `201`, duplicate `409`, reminders (1 sent + 1 skipped), check-in `attended`, donation recorded, report `{booked:1,attended:1,turnout:100,storage:"database"}`, and 401/403/404/400/409 cases. It creates fresh accounts each run and supports `BDO_API_URL` for Floci. Floci smoke through the API Gateway also reports **22 PASS**, with report `storage:"s3"`. Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in are verified.
 
 Test hooks already in code: `TEST_MODE=1` (deterministic geocode, no Turnstile), `EMAIL_MODE=log` (no real sends), `setClock()` for time-dependent rules, `setServiceFetch()` to stub cross-service calls.
 
@@ -287,7 +287,7 @@ Video guidance (≤5 minutes): show the public URL first, run steps 1–9 quickl
 - [x] Floci fixes: relative `fileb://dist/lambda/<service>.zip` paths, Lambda `AWS_ENDPOINT_URL=http://floci:4566`, DynamoDB `reserveSeat()` read-compare-update with retry, S3 `forcePathStyle`, and `serverless-http` Buffer normalization in `shared/router.js`.
 - [x] Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in are verified locally and on Floci.
 - [x] `npm test`: 53 tests, 53 pass, 0 fail across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`.
-- [x] Local smoke `.data/smoke.mjs`: 22 PASS with fresh accounts each run and `BDO_API_URL` support; Floci smoke through the gateway: 22 PASS, report `storage:"s3"`.
+- [x] Local smoke `scripts/smoke.mjs`: 22 PASS with fresh accounts each run and `BDO_API_URL` support; Floci smoke through the gateway: 22 PASS, report `storage:"s3"`.
 - [x] `infra/scripts/configure-cloudflare.js` exists and `npm run deploy:cloudflare` runs it; Cloudflare Booking Worker has `[triggers] crons = ["0 6 * * *"]` and `scheduled()`; Booking Lambda handles EventBridge `aws.events`.
 - [x] This documentation set (no source, package, infra, test or README file was modified).
 

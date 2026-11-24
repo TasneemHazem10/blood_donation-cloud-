@@ -17,9 +17,13 @@ npm install
 npm test                          # 53 tests, 53 pass, 0 fail
 npm run evidence:capture          # writes evidence/DRV-05, DON-14, DON-16 files
 node infra/scripts/dev-all.js     # or npm run dev
-node .data/smoke.mjs              # local: 22 PASS
+npm run smoke                     # local: 22 PASS
 BDO_API_URL=http://4f503503dd.execute-api.localhost.floci.io:4566 \
-  ORGANIZER_INVITE=<from infra/secrets.env> node .data/smoke.mjs   # Floci: 22 PASS
+  ORGANIZER_INVITE=<from infra/secrets.env> npm run smoke           # Floci: 22 PASS
+# Cloudflare Workers (separate URLs):
+BDO_API_URL='' BDO_DRIVE_URL=https://bdo-drive.<account>.workers.dev \
+  BDO_DONOR_URL=https://bdo-donor.<account>.workers.dev \
+  BDO_BOOKING_URL=https://bdo-booking.<account>.workers.dev npm run smoke
 bash infra/deploy-all.sh          # Git Bash; ends with ALL CHECKS PASSED
 ```
 

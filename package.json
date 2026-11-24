@@ -13,6 +13,7 @@
   "scripts": {
     "dev": "node infra/scripts/dev-all.js",
     "test": "node --test --test-concurrency=1",
+    "smoke": "node scripts/smoke.mjs",
     "seed": "node infra/scripts/seed.js",
     "zip:all": "node infra/scripts/zip-lambda.js",
     "workers:bundle": "node infra/scripts/bundle-workers.js",

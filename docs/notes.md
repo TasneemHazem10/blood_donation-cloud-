@@ -89,7 +89,7 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 * **Problem:** tests must not call real Nominatim, Turnstile or Brevo, and date-dependent rules need stable inputs.
 * **Fix:** `TEST_MODE=1` makes geocoding deterministic and skips Turnstile; `EMAIL_MODE=log` records email rows locally; `shared/context.js` exposes `setClock()`; `shared/serviceClient.js` exposes `setServiceFetch()`. `npm test` uses `--test-concurrency=1` to avoid SQLite contention.
-* **Status:** 53 tests written under `tests/`; `npm test` → 53 pass, 0 fail. `.data/smoke.mjs` creates fresh accounts each run and accepts `BDO_API_URL` for Floci; both local and Floci runs are 22/22 PASS.
+* **Status:** 53 tests written under `tests/`; `npm test` → 53 pass, 0 fail. `scripts/smoke.mjs` creates fresh accounts each run and accepts `BDO_API_URL` for Floci; both local and Floci runs are 22/22 PASS.
 
 ### Entry 14 — Evidence and ownership gap
 
