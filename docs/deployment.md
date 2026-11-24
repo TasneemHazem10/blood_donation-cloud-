@@ -19,7 +19,7 @@ All URLs, account ids and credentials below are **placeholders**. Never commit a
 ## Verified results (25 Nov 2026)
 
 * Local website: `http://localhost:8090`; APIs: `3001` drive, `3002` donor, `3003` booking. The seed's final message now prints `http://localhost:8090` (the 8080 conflict was resolved by using 8090).
-* `npm test`: **51 tests, 51 pass, 0 fail**, across `tests/{booking-api,donor-api,drive-api,integration,shared-rules}.test.js`.
+* `npm test`: **53 tests, 53 pass, 0 fail**, across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`.
 * Local smoke `.data/smoke.mjs`: **22 PASS** (register/login, drive and slot, eligibility, booking `201`, duplicate `409`, reminders 1 sent + 1 skipped, check-in `attended`, donation recorded, report `{booked:1,attended:1,turnout:100,storage:"database"}`, and 401/403/404/400/409 cases). It creates fresh accounts each run and supports `BDO_API_URL` for Floci.
 * `bash infra/deploy-all.sh` now completes: **ALL CHECKS PASSED** — drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200. API Gateway: `http://4f503503dd.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets.
 * Floci smoke through the API Gateway: **22 PASS**, report `storage:"s3"`.
@@ -313,7 +313,7 @@ Wake Neon before a demo: free compute may pause after inactivity and the first r
 
 - [x] `infra/scripts/configure-cloudflare.js` exists; `npm run deploy:cloudflare` runs it.
 - [x] Cloudflare Booking cron (`0 6 * * *`) and `scheduled()` handler are configured; Booking Lambda handles EventBridge `aws.events`.
-- [x] Floci deployment completes with `ALL CHECKS PASSED`; local and Floci smoke are 22/22 each; `npm test` is 51/51.
+- [x] Floci deployment completes with `ALL CHECKS PASSED`; local and Floci smoke are 22/22 each; `npm test` is 53/53.
 - [ ] Repository initialisation, commits, branches, PRs, `v1.0` tag and code zip are still not done; CODEOWNERS retain placeholders until real GitHub usernames are known.
 - [ ] Demo video, frontend browser screenshot, Cloudflare/Neon approval screenshot, real Cloudflare/Neon credentials and public URL are still not done.
 - [ ] Real Turnstile/Brevo keys are not configured; no live email or bot-check evidence has been captured.

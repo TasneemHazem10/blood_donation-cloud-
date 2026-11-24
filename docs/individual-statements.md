@@ -1,6 +1,6 @@
 # Individual contribution statements
 
-These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (51/51) and local + Floci smoke (22/22 each). Git/repository links, the public deployed URL, video, frontend browser screenshot and real API keys remain placeholders: there is no Git repository, commits, PRs or tag yet, and no claim is made that a commit was made. Replace every `[PLACEHOLDER]` with a real artefact before submitting the report.
+These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (53/53), local + Floci smoke (22/22 each) and the captured files in `evidence/`. A local Git repository exists with an **import** commit by Tasneem (`2139745`) and three `feature/*` branches, but there is no remote, PR, `v1.0` tag or per-student commit yet; no authorship claim is made for the import commit. The public deployed URL, video, frontend browser screenshot and real API keys also remain placeholders. Replace every `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
 
 Shared evidence placeholders used below:
 
@@ -28,7 +28,7 @@ Owned component: **Drive Management service** (`services/drive/`), from organize
 | `filterDrives` / `filterNear` / `buildReport` / `validateDriveInput` / `validateSlotInput` / `assertNoOverlap` | `services/drive/services/driveRules.js` | Pure business rules used by the controllers |
 | `saveReportSnapshot(report)` | `services/drive/services/s3.js` | Writes CSV snapshot to S3 when `REPORTS_BUCKET` is set, otherwise records database-only storage |
 
-Function list is present in source and exercised by `npm test` / Floci smoke. Git evidence placeholder: `[EVIDENCE: function list linked to [PR_LINK_HABIBA_DRIVE] and [COMMIT_HASH_HABIBA_DRIVE]]`. Git is not yet initialised; links must be created, not invented.
+Function list is present in source and exercised by `npm test` / Floci smoke. Git evidence placeholder: `[EVIDENCE: function list linked to [PR_LINK_HABIBA_DRIVE] and [COMMIT_HASH_HABIBA_DRIVE]]`. A local repo exists but links must be created, not invented.
 
 ### 2. Frontend work
 
@@ -80,9 +80,9 @@ Verified by local and Floci smoke, which cover 400/401/403/404/409 cases; captur
 
 ### 6. Tests
 
-Automated cases DRV-01–DRV-13 are in `docs/testing.md` (health, create, slot add, filters, report, missing field, unknown id, wrong owner, overlap, full slot, cancel/delete, future completion). They are implemented in `tests/drive-api.test.js` and `tests/integration.test.js` with `node --test` and Supertest; `npm test` reports 51 tests, 51 pass, 0 fail across all five test files.
+Automated cases DRV-01–DRV-13 are in `docs/testing.md` (health, create, slot add, filters, report, missing field, unknown id, wrong owner, overlap, full slot, cancel/delete, future completion). They are implemented in `tests/drive-api.test.js` and `tests/integration.test.js` with `node --test` and Supertest; `npm test` reports 53 tests, 53 pass, 0 fail across all six test files.
 
-Verified by `npm test` (51/51 overall) and local + Floci smoke (22/22 each). Manual Nominatim evidence is not captured; `TEST_MODE` uses deterministic coordinates.
+Verified by `npm test` (53/53 overall) and local + Floci smoke (22/22 each). DRV-05 additionally has live external-API evidence in `evidence/DRV-05-live-geocode.txt` (real Nominatim coordinates, cached rows and a `?near=` result with `distanceKm`).
 
 ### 7. Integration work
 
@@ -107,7 +107,7 @@ Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_HABIBA_RULES], [COMMIT
 
 1. **SQLite "database is locked" while three local services initialised the same file.** Fixed by enabling WAL, a 5-second busy timeout and `synchronous=NORMAL` in `shared/store/sqlite.js` (see `docs/notes.md`).
 2. **Port 8080 was already taken on the development machine.** Moved the website to **http://localhost:8090** in `infra/scripts/dev-all.js` and updated `CORS_ORIGINS`; the three APIs stayed on 3001/3002/3003. The seed script's final message was also corrected to 8090.
-3. **Floci geocode cache table.** Added `bdo_geocodes` to `infra/services/drive.sh`; the verified deployment creates nine DynamoDB tables and the cache is available. Manual Nominatim evidence is not captured; `TEST_MODE` uses deterministic coordinates in tests and smoke runs.
+3. **Floci geocode cache table.** Added `bdo_geocodes` to `infra/services/drive.sh`; the verified deployment creates nine DynamoDB tables and the cache is available. DRV-05 now has a live `?near=` capture outside `TEST_MODE=1` in `evidence/DRV-05-live-geocode.txt`.
 4. **CORS origin differs per deployment** (8090 local, 4566 Floci, Pages URL on Cloudflare). Handled with the `CORS_ORIGINS` env var; `wrangler.toml` defaults to `https://bdo-organizer.pages.dev`, and `configure-cloudflare.js` sets the detected Pages URL as a secret. Verify against the real hostname during public deployment.
 
 Evidence placeholder: `[EVIDENCE: error log screenshot before/after WAL fix; browser URL showing 8090]`.
@@ -169,13 +169,13 @@ Evidence placeholder: `[EVIDENCE: SQL/DynamoDB rows after register, profile upda
 * Turnstile: missing token → `401`, upstream unavailable → `502`; without a secret the code explicitly uses development mode.
 * `authRateLimit.check` → `429 RATE_LIMIT`; duplicate email/bad invite → `409`; wrong password/no token → `401`; donor-only routes → `403`.
 
-Verified by local + Floci smoke for 400/401/403/409 cases; 429 capture still needs a controlled run.
+Verified by local + Floci smoke for 400/401/403/409 cases; the 429 branch is captured in `evidence/DON-14-rate-limit.txt` (attempts 1–8 = 401, attempt 9 = 429).
 
 ### 6. Tests
 
-Automated cases DON-01–DON-16 are in `docs/testing.md`: valid registration/login, both roles, `me`, eligibility states, profile update, history, duplicate email, wrong password, missing token, role misuse, invalid profile, rate limit, deletion blocked by booking, Turnstile without token. Most are covered by `tests/donor-api.test.js` and `tests/integration.test.js`; 429 evidence and validation with a real Turnstile widget token still need controlled capture because no real keys are configured.
+Automated cases DON-01–DON-16 are in `docs/testing.md`: valid registration/login, both roles, `me`, eligibility states, profile update, history, duplicate email, wrong password, missing token, role misuse, invalid profile, rate limit, deletion blocked by booking, Turnstile without token. Most are covered by `tests/donor-api.test.js` and `tests/integration.test.js`; DON-14 and the missing-token branch of DON-16 are now covered by `tests/pending-evidence.test.js` and captured in `evidence/DON-14-rate-limit.txt` and `evidence/DON-16-turnstile-missing-token.txt`. Validation with a real Turnstile widget token is still pending a live test key.
 
-Verified by `npm test` (51/51 overall) and local + Floci smoke (22/22 each); keep captured output for report evidence.
+Verified by `npm test` (53/53 overall) and local + Floci smoke (22/22 each); keep captured output for report evidence.
 
 ### 7. Integration work
 
@@ -267,9 +267,9 @@ Verified by local + Floci smoke for 400/401/403/409 cases; capture placeholder r
 
 ### 6. Tests
 
-Automated cases BOK-01–BOK-19 are in `docs/testing.md`: normal booking/cancel/check-in, reminder idempotency, ineligible donor, full slot, double booking, unknown id, donor calling check-in, wrong outcome, wrong organizer, missing internal key, daily internal route. They are implemented in `tests/booking-api.test.js`, `tests/shared-rules.test.js` and `tests/integration.test.js`; the full suite is 51/51 PASS and both smoke runs are 22/22 PASS.
+Automated cases BOK-01–BOK-19 are in `docs/testing.md`: normal booking/cancel/check-in, reminder idempotency, ineligible donor, full slot, double booking, unknown id, donor calling check-in, wrong outcome, wrong organizer, missing internal key, daily internal route. They are implemented in `tests/booking-api.test.js`, `tests/shared-rules.test.js` and `tests/integration.test.js`; the full suite is 53/53 PASS and both smoke runs are 22/22 PASS.
 
-Verified by `npm test` (51/51) and local + Floci smoke (22/22 each, report `storage:"s3"` on Floci); keep captured output for report evidence.
+Verified by `npm test` (53/53) and local + Floci smoke (22/22 each, report `storage:"s3"` on Floci); keep captured output for report evidence.
 
 ### 7. Integration work
 

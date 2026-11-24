@@ -182,7 +182,7 @@ npm test -w @bdo/donor
 npm test -w @bdo/booking
 ```
 
-`npm test` runs **51 tests, 51 pass, 0 fail**, across `tests/{booking-api,donor-api,drive-api,integration,shared-rules}.test.js`. `docs/testing.md` keeps the DRV-01–13, DON-01–16, BOK-01–19 and E2E-01–06 case IDs; fill its Actual/Result columns only after capturing output.
+`npm test` runs **53 tests, 53 pass, 0 fail**, across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`. `docs/testing.md` keeps the DRV-01–13, DON-01–16, BOK-01–19 and E2E-01–06 case IDs; fill its Actual/Result columns only after capturing output.
 
 Local smoke `.data/smoke.mjs` reports **22 PASS**: register/login, drive and slot, eligibility, booking `201`, duplicate `409`, reminders (1 sent + 1 skipped), check-in `attended`, donation recorded, report `{booked:1,attended:1,turnout:100,storage:"database"}`, and 401/403/404/400/409 cases. It creates fresh accounts each run and supports `BDO_API_URL` for Floci. Floci smoke through the API Gateway also reports **22 PASS**, with report `storage:"s3"`. Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in are verified.
 
@@ -263,11 +263,11 @@ Video guidance (≤5 minutes): show the public URL first, run steps 1–9 quickl
 | 2. Architecture and cloud model | `docs/architecture.md` Mermaid diagrams + cloud model table; instructor Cloudflare/Neon approval screenshot |
 | 3. Service/API list, ER diagram, CRUD | `docs/api.md` (all 39 routes), `docs/data-model.md` (ER + CRUD), `docs/openapi.yaml` |
 | 4. Methodology / technical solution | This guide sections 2–4; file structure; shared runtime table |
-| 5. External integration | `shared/external/*.js`; `docs/architecture.md` section 6; Turnstile widget in `auth.js`; `EMAIL_DEV_LOG` vs Brevo response. Manual Nominatim evidence is not captured; `TEST_MODE` uses deterministic coordinates |
+| 5. External integration | `shared/external/*.js`; `docs/architecture.md` section 6; Turnstile widget in `auth.js`; `EMAIL_DEV_LOG` vs Brevo response. Live Nominatim evidence is in `evidence/DRV-05-live-geocode.txt`; `TEST_MODE` is used only in tests/smoke |
 | 6. Deployment approach | `docs/deployment.md`; verified Floci `ALL CHECKS PASSED` at `http://4f503503dd.execute-api.localhost.floci.io:4566`; cloud dashboard screenshots; public URL screenshot still pending |
 | 7. GitHub repository | `[REPO_URL]` + branch/PR/tag evidence — **not yet created** |
 | 8. Demo video | `[VIDEO_URL]` recorded from `<DEPLOYED_URL>` — **not yet created** |
-| 9. Testing | `npm test` 51/51; local smoke 22/22; Floci smoke 22/22 through the gateway with `storage:"s3"`; `docs/testing.md` case IDs + captured `curl`/Postman responses, test-run screenshots, DB rows |
+| 9. Testing | `npm test` 53/53; local smoke 22/22; Floci smoke 22/22 through the gateway with `storage:"s3"`; `docs/testing.md` case IDs + captured `curl`/Postman responses, test-run screenshots, DB rows |
 | 10. Limitations | `docs/limitations.md` with reason + improvement per item |
 | Individual statements | `docs/individual-statements.md` — three statements, nine mandatory items each; replace all placeholders |
 
@@ -286,7 +286,7 @@ Video guidance (≤5 minutes): show the public URL first, run steps 1–9 quickl
 - [x] Floci deployment completes: `ALL CHECKS PASSED` at `http://4f503503dd.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets; drive/donor/booking health, drive list, website and Floci dashboard all return 200.
 - [x] Floci fixes: relative `fileb://dist/lambda/<service>.zip` paths, Lambda `AWS_ENDPOINT_URL=http://floci:4566`, DynamoDB `reserveSeat()` read-compare-update with retry, S3 `forcePathStyle`, and `serverless-http` Buffer normalization in `shared/router.js`.
 - [x] Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in are verified locally and on Floci.
-- [x] `npm test`: 51 tests, 51 pass, 0 fail across `tests/{booking-api,donor-api,drive-api,integration,shared-rules}.test.js`.
+- [x] `npm test`: 53 tests, 53 pass, 0 fail across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`.
 - [x] Local smoke `.data/smoke.mjs`: 22 PASS with fresh accounts each run and `BDO_API_URL` support; Floci smoke through the gateway: 22 PASS, report `storage:"s3"`.
 - [x] `infra/scripts/configure-cloudflare.js` exists and `npm run deploy:cloudflare` runs it; Cloudflare Booking Worker has `[triggers] crons = ["0 6 * * *"]` and `scheduled()`; Booking Lambda handles EventBridge `aws.events`.
 - [x] This documentation set (no source, package, infra, test or README file was modified).

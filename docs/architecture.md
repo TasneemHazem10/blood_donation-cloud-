@@ -153,6 +153,6 @@ All server-to-server calls use `shared/serviceClient.js`: a 10 s timeout, `x-int
 | Cloudflare Turnstile | `shared/external/turnstile.js`, called by Donor register/login; widget in `frontend/js/views/auth.js` | `TURNSTILE_SECRET` server-side, `TURNSTILE_SITE_KEY` client-side | Without a secret the service returns `{mode:'development'}`; with a secret, missing token → `401`, upstream failure → `502` |
 | Brevo | `shared/external/email.js`, used by Booking confirmation, cancellation and reminders | `BREVO_API_KEY`, `EMAIL_FROM`, `EMAIL_MODE` | In `TEST_MODE`, `EMAIL_MODE=log`, or without a key, logs `EMAIL_DEV_LOG` and stores a `dev-log` row; real failures are stored as `failed` and never crash the bookings flow |
 
-Manual Nominatim/geocoding evidence is not captured; `TEST_MODE` uses deterministic coordinates in tests and smoke runs.
+Live Nominatim evidence **is** captured in `evidence/DRV-05-live-geocode.txt` (drive creation with real coordinates, cached rows and `?near=` result); `TEST_MODE` is used only in automated tests and smoke runs.
 
 All credentials are environment variables / Worker secrets. No real URL, key or token is stored in the repository.

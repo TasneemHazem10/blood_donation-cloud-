@@ -150,13 +150,13 @@ Every credential is read from an environment variable by `shared/config.js`; no 
 
 ## 7. GitHub repository
 
-**PENDING.** There is no `.git` directory in the workspace at the time of writing, so no repository link, commit hash, branch, pull request or tag can be claimed. The intended structure is:
+**PARTIAL.** A local Git repository now exists: `main` contains import commit `2139745` (authored by Tasneem using the machine's configured identity, *not* a claim that she wrote every service), and the branches `feature/s1-drive`, `feature/s2-donor` and `feature/s3-booking` exist. There is still **no remote repository, pull request, review, `v1.0` tag or per-student commit**, so no GitHub link can be claimed yet. The intended structure is:
 
 * `main` — protected, deployable state; `feature/s1-*`, `feature/s2-*`, `feature/s3-*` — one branch per student; pull requests reviewed by another student; `v1.0` tag used for the submitted ZIP.
 * `.github/CODEOWNERS` maps `services/drive/` to Habiba, `services/donor/` to Tasneem, `services/booking/` to Hala and shared folders to all three. The real GitHub handles must replace the placeholders before submission.
 * Each student must commit their own service from their own Git identity; the code in this workspace is not evidence of authorship by itself.
 
-To fill this section: create the repository, push `main`, open and merge the three feature PRs, set the CODEOWNERS handles, tag `v1.0`, then run `git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0`. Insert the repository URL and three PR/commit links here: **[REPO_URL]**, **[PR_LINK_HABIBA]**, **[PR_LINK_TASNEEM]**, **[PR_LINK_HALA]**.
+To fill this section: create the repository, push `main`, make one real commit per student on their branch with their own Git identity, open and merge the three PRs, set the CODEOWNERS handles, tag `v1.0`, then run `git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0`. Step-by-step commands are in [`docs/git-workflow.md`](git-workflow.md). Insert the repository URL and three PR/commit links here: **[REPO_URL]**, **[PR_LINK_HABIBA]**, **[PR_LINK_TASNEEM]**, **[PR_LINK_HALA]**.
 
 ---
 

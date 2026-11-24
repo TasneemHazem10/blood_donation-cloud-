@@ -18,7 +18,7 @@
 
 Every row is **one JSON document**. There are no SQL foreign keys, no secondary indexes and no migrations beyond `CREATE TABLE IF NOT EXISTS`; relationships are enforced in application code (`*Rules.js` and controllers) and by deterministic id conventions.
 
-> **Floci status:** `infra/services/drive.sh` creates `bdo_geocodes` with the other Drive tables; the verified deployment has all 9 DynamoDB tables. Manual Nominatim evidence is not captured, and `TEST_MODE` uses deterministic coordinates in tests and smoke runs.
+> **Floci status:** `infra/services/drive.sh` creates `bdo_geocodes` with the other Drive tables; the verified deployment has all 9 DynamoDB tables. Live Nominatim evidence is captured in `evidence/DRV-05-live-geocode.txt` (two cached rows); `TEST_MODE` is used only in automated tests and smoke runs.
 
 ## 2. Entities and fields
 
