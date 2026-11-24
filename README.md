@@ -194,7 +194,7 @@ Never commit `.dev.vars`, `.env`, `infra/secrets.env` or real credentials.
 
 ## 7. Repository, ownership and evidence
 
-The repository should be made public or the module leader should be invited as a collaborator. Suggested branching strategy:
+The team repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git** (`main` and the three feature branches are pushed). Make it public or invite the module leader as a collaborator. Suggested branching strategy:
 
 - `main` is protected and always deployable.
 - Each student works on `feature/s1-*`, `feature/s2-*` or `feature/s3-*` and opens a PR reviewed by another student.

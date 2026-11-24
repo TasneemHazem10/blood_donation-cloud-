@@ -8,9 +8,9 @@
 /docs/limitations.md @REPLACE_WITH_HABIBA_GITHUB
 
 # Tasneem - Donor and Eligibility
-/services/donor/    @REPLACE_WITH_TASNEEM_GITHUB
-/docs/methodology.md @REPLACE_WITH_TASNEEM_GITHUB
-/docs/testing.md    @REPLACE_WITH_TASNEEM_GITHUB
+/services/donor/    @TasneemHazem10
+/docs/methodology.md @TasneemHazem10
+/docs/testing.md    @TasneemHazem10
 
 # Hala - Booking and Reminder
 /services/booking/  @REPLACE_WITH_HALA_GITHUB
@@ -19,7 +19,7 @@
 /docs/individual-statements.md @REPLACE_WITH_HALA_GITHUB
 
 # Shared areas require review from all three owners.
-/frontend/          @REPLACE_WITH_HABIBA_GITHUB @REPLACE_WITH_TASNEEM_GITHUB @REPLACE_WITH_HALA_GITHUB
-/shared/            @REPLACE_WITH_HABIBA_GITHUB @REPLACE_WITH_TASNEEM_GITHUB @REPLACE_WITH_HALA_GITHUB
-/infra/             @REPLACE_WITH_HABIBA_GITHUB @REPLACE_WITH_TASNEEM_GITHUB @REPLACE_WITH_HALA_GITHUB
-/tests/             @REPLACE_WITH_HABIBA_GITHUB @REPLACE_WITH_TASNEEM_GITHUB @REPLACE_WITH_HALA_GITHUB
+/frontend/          @REPLACE_WITH_HABIBA_GITHUB @TasneemHazem10 @REPLACE_WITH_HALA_GITHUB
+/shared/            @REPLACE_WITH_HABIBA_GITHUB @TasneemHazem10 @REPLACE_WITH_HALA_GITHUB
+/infra/             @REPLACE_WITH_HABIBA_GITHUB @TasneemHazem10 @REPLACE_WITH_HALA_GITHUB
+/tests/             @REPLACE_WITH_HABIBA_GITHUB @TasneemHazem10 @REPLACE_WITH_HALA_GITHUB

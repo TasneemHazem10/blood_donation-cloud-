@@ -1,10 +1,10 @@
 # Individual contribution statements
 
-These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (53/53), local + Floci smoke (22/22 each) and the captured files in `evidence/`. A local Git repository exists with an **import** commit by Tasneem (`2139745`) and three `feature/*` branches, but there is no remote, PR, `v1.0` tag or per-student commit yet; no authorship claim is made for the import commit. Local browser screenshots are in `evidence/E2E-04-*.png`; the public deployed URL, video, public-URL browser screenshot and real API keys also remain placeholders. Replace every `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
+These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (53/53), local + Floci smoke (22/22 each) and the captured files in `evidence/`. The team repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**; `main` and three `feature/*` branches are pushed, but there is no PR, `v1.0` tag or per-student commit yet; no authorship claim is made for the import commit `2139745`. Local browser screenshots are in `evidence/E2E-04-*.png`; the public deployed URL, video, public-URL browser screenshot and real API keys also remain placeholders. Replace every `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
 
 Shared evidence placeholders used below:
 
-* `[REPO_URL]` — team GitHub repository (public or module leader invited).
+* `[REPO_URL]` — **https://github.com/TasneemHazem10/blood_donation-cloud-.git** (`main` and the three feature branches are pushed; PRs/tag still pending).
 * `[PR_LINK_*]`, `[COMMIT_HASH_*]` — real PR/commit links per contribution.
 * `[EVIDENCE: ...]` — screenshot, copied request/response, SQL row image or log excerpt.
 * `[DEPLOYED_URL]` — public Cloudflare URL (not localhost).

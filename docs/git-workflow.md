@@ -11,17 +11,18 @@ The workspace now contains a real local Git repository:
   * `a2d2660`, `96b3628`, `89cb282` — Git note corrections and browser E2E-04 evidence.
 
   These are *import/documentation* commits, not a claim that Tasneem wrote all three services.
-* Three local branches exist from that commit: `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking`.
-* There is **no remote repository, no pull request, no review, no `v1.0` tag and no per-student commit yet**.
-  `.github/CODEOWNERS` still contains placeholder GitHub handles.
+* Three branches exist: `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking`.
+* The remote **https://github.com/TasneemHazem10/blood_donation-cloud-.git** is configured as `origin`;
+  `main` (HEAD `5ffa0ef`) and all three feature branches have been pushed.
+* There is **no pull request, no review, no `v1.0` tag and no per-student commit yet**.
+  `.github/CODEOWNERS` still contains placeholder handles for Habiba and Hala.
 
 ## Required next steps (must be done by the students)
 
-1. Create a GitHub repository (public, or invite the module leader) and add it as `origin`:
+1. The repository already exists at `https://github.com/TasneemHazem10/blood_donation-cloud-.git` and is configured as `origin`; make sure it is public or that the module leader is invited as a collaborator. Re-push after any future change with:
 
    ```bash
-   git remote add origin https://github.com/<TEAM_OR_OWNER>/<REPO>.git
-   git push -u origin main
+   git push origin main
    ```
 
 2. Replace the `@REPLACE_WITH_*_GITHUB` entries in `.github/CODEOWNERS` with real handles,
