@@ -223,16 +223,38 @@ npm run smoke                                         # expect 22/22 PASS
 
 ## Step 7 — Deployed public system
 
-After `npm run deploy:cloudflare` (see `FINALIZATION_README.md`):
+The public deployment is already live (see `FINALIZATION_README.md` section 3):
 
-```powershell
-curl.exe -i https://<drive-worker>/api/health/drive
-curl.exe -i https://<donor-worker>/api/health/donor
-curl.exe -i https://<booking-worker>/api/health/booking
+```text
+Website: https://bdo-organizer.tourmaline-headphones.workers.dev
+Drive:   https://bdo-drive.tourmaline-headphones.workers.dev
+Donor:   https://bdo-donor.tourmaline-headphones.workers.dev
+Booking: https://bdo-booking.tourmaline-headphones.workers.dev
 ```
 
-Then repeat **Steps 2, 4 and 5** against the public URLs, confirm the SPA on laptop and phone, and
-capture Neon SQL screenshots. Record the public URL in `docs/report.md` and the statements.
+```powershell
+curl.exe -i https://bdo-drive.tourmaline-headphones.workers.dev/api/health/drive
+curl.exe -i https://bdo-donor.tourmaline-headphones.workers.dev/api/health/donor
+curl.exe -i https://bdo-booking.tourmaline-headphones.workers.dev/api/health/booking
+```
+
+Expected: HTTP 200 for all three, with `Access-Control-Allow-Origin: https://bdo-organizer.tourmaline-headphones.workers.dev`.
+
+Run the whole automated public journey (already captured in `evidence/PUBLIC-SMOKE.txt`):
+
+```powershell
+$env:BDO_API_URL=''
+$env:BDO_DRIVE_URL='https://bdo-drive.tourmaline-headphones.workers.dev'
+$env:BDO_DONOR_URL='https://bdo-donor.tourmaline-headphones.workers.dev'
+$env:BDO_BOOKING_URL='https://bdo-booking.tourmaline-headphones.workers.dev'
+$env:ORGANIZER_INVITE='blood2026'
+npm run smoke
+```
+
+Expected: `SMOKE: 22/22 PASS`. Then repeat **Steps 2, 4 and 5** in the browser at the public website
+(already captured on the home/drives pages in `evidence/PUBLIC-E2E-*.png`), confirm on a phone, and
+capture Neon SQL screenshots. The temporary Cloudflare account must be claimed with the one-time
+link supplied outside the repository, or the public URLs may expire.
 
 ---
 

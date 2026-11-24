@@ -1,6 +1,7 @@
 name = "bdo-donor"
 main = "dist/worker.js"
 compatibility_date = "2026-01-01"
+compatibility_flags = ["global_fetch_strictly_public"]
 
 [vars]
 DATA_DRIVER = "neon"

@@ -24,7 +24,7 @@ All URLs, account ids and credentials below are **placeholders**. Never commit a
 * `bash infra/deploy-all.sh` now completes: **ALL CHECKS PASSED** — drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200. API Gateway: `http://4f503503dd.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets.
 * Floci smoke through the API Gateway: **22 PASS**, report `storage:"s3"`.
 * Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in work.
-* Public Cloudflare/Neon deployment is still **pending real credentials, a public URL, video and frontend browser screenshot**.
+* Public Cloudflare/Neon deployment is **live**: `https://bdo-organizer.tourmaline-headphones.workers.dev`; public smoke **22 PASS**, health/CORS/config/Neon evidence in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots in `evidence/PUBLIC-E2E-*.png`. Only the demo video still needs to be recorded.
 
 ---
 
@@ -192,7 +192,7 @@ npx wrangler deploy --config services/donor/wrangler.toml   # -> <DONOR_WORKER_U
 npx wrangler deploy --config services/booking/wrangler.toml # -> <BOOKING_WORKER_URL>
 ```
 
-Each `wrangler.toml` sets `main = "dist/worker.js"`, `DATA_DRIVER = "neon"`, `NODE_ENV = "production"` and `CORS_ORIGINS = "https://bdo-organizer.pages.dev"`. Change that var if the actual Pages hostname differs. Booking also sets `EMAIL_MODE = "log"`; set it to a live value (for example `live`) only after a Brevo key is configured.
+Each `wrangler.toml` sets `main = "dist/worker.js"`, `DATA_DRIVER = "neon"`, `NODE_ENV = "production"` and a default `CORS_ORIGINS` of `https://bdo-organizer.pages.dev`; the live deployment overrides it as a Worker secret with `https://bdo-organizer.tourmaline-headphones.workers.dev` (verified in `evidence/PUBLIC-DEPLOYMENT.txt`). All three also set `compatibility_flags = ["global_fetch_strictly_public"]` for Worker-to-Worker fetches. Booking sets `EMAIL_MODE = "log"`; set it to a live value only after a Brevo key is configured.
 
 ### 3.4 Secrets and variables
 
@@ -256,7 +256,7 @@ window.BDO = {
 };
 ```
 
-> `infra/scripts/configure-cloudflare.js` **exists**, and `npm run deploy:cloudflare` runs it. With real Cloudflare/Neon environment variables it bundles Workers, applies the schema, deploys, sets secrets (including the detected Pages URL for `CORS_ORIGINS`), writes `frontend/js/config.js`, and verifies the three health endpoints. No real credentials or public URL have been used yet; no secrets belong in this file.
+> `infra/scripts/configure-cloudflare.js` **exists**, and `npm run deploy:cloudflare` runs it. With Cloudflare/Neon environment variables it bundles Workers, applies the schema, deploys, sets secrets (including the public site URL for `CORS_ORIGINS`), writes `frontend/js/config.js`, and verifies the three health endpoints. The live deployment used `wrangler deploy --temporary` with a secrets file on a preview account; no secret or claim token belongs in this file. See `evidence/PUBLIC-DEPLOYMENT.txt`.
 
 Deploy:
 
@@ -264,14 +264,15 @@ Deploy:
 npx wrangler deploy --config frontend/wrangler.toml   # -> <PAGES_OR_WORKERS_SITE_URL>
 ```
 
-If using classic Cloudflare Pages instead, create a Pages project named `bdo-organizer` and upload `frontend/`; then set the same `window.BDO` values through the Pages build output. The report must use the final public URL, never `localhost`.
+If using classic Cloudflare Pages instead, create a Pages project named `bdo-organizer` and upload `frontend/`; then set the same `window.BDO` values through the Pages build output. The report uses the live public URL **https://bdo-organizer.tourmaline-headphones.workers.dev**, never `localhost`.
 
 ### 3.6 Cloudflare cron status — checklist
 
 - [x] `services/booking/wrangler.toml` sets `[triggers] crons = ["0 6 * * *"]`.
 - [x] `services/booking/worker.js` exports `scheduled(controller, env, ctx)`, which calls the same `sendForDate()` logic as the organizer button and `/internal/reminders/daily`.
 - [x] Floci EventBridge events are handled by `services/booking/lambda.js` when `source === 'aws.events'`.
-- [ ] Public Cloudflare cron execution is unverified: real Cloudflare/Neon credentials and a deployed URL are still pending. Organizer → Emails (`POST /api/reminders/send`) remains the manual demonstration path.
+- [x] Public manual reminder path verified: organizer Emails button (`POST /api/reminders/send`) and `POST /internal/reminders/daily` both returned 200 in `evidence/PUBLIC-SMOKE.txt` (1 sent, 1 skipped on repeat).
+- [ ] Cron-trigger execution on Cloudflare is unverified: the temporary preview account allows 0 cron triggers. Attach `0 6 * * *` on a permanent account and capture one scheduled run.
 
 ### 3.7 Public verification
 
@@ -314,7 +315,7 @@ Wake Neon before a demo: free compute may pause after inactivity and the first r
 - [x] `infra/scripts/configure-cloudflare.js` exists; `npm run deploy:cloudflare` runs it.
 - [x] Cloudflare Booking cron (`0 6 * * *`) and `scheduled()` handler are configured; Booking Lambda handles EventBridge `aws.events`.
 - [x] Floci deployment completes with `ALL CHECKS PASSED`; local and Floci smoke are 22/22 each; `npm test` is 53/53.
-- [ ] Repository initialisation, commits, branches, PRs, `v1.0` tag and code zip are still not done; CODEOWNERS retain placeholders until real GitHub usernames are known.
-- [ ] Demo video, frontend browser screenshot, Cloudflare/Neon approval screenshot, real Cloudflare/Neon credentials and public URL are still not done.
+- [ ] Real per-student commits, PRs, `v1.0` tag and code zip are still not done; CODEOWNERS retain placeholders until real GitHub usernames are known. (Repository and branches exist.)
+- [ ] Demo video and Cloudflare/Neon approval screenshot are still not done. Public frontend browser screenshots **are** captured in `evidence/PUBLIC-E2E-*.png`.
 - [ ] Real Turnstile/Brevo keys are not configured; no live email or bot-check evidence has been captured.
-- [ ] Public Cloudflare deployment has not been executed; manual Nominatim evidence is not captured (`TEST_MODE` uses deterministic coordinates).
+- [x] Public Cloudflare + Neon deployment executed and verified (`evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`). Manual Nominatim evidence is in `evidence/DRV-05-live-geocode.txt`.

@@ -1,0 +1,45 @@
+PUBLIC CLOUDFLARE WORKERS + NEON DEPLOYMENT EVIDENCE
+capturedAt: 2026-11-24T23:23:25.266Z
+frontend: https://bdo-organizer.tourmaline-headphones.workers.dev
+drive:    https://bdo-drive.tourmaline-headphones.workers.dev
+donor:    https://bdo-donor.tourmaline-headphones.workers.dev
+booking:  https://bdo-booking.tourmaline-headphones.workers.dev
+
+--- HEALTH CHECKS (live public HTTPS) ---
+drive: HTTP 200 {"status":"ok","service":"drive","time":"2026-11-24T23:23:25.761Z"}
+  access-control-allow-origin: https://bdo-organizer.tourmaline-headphones.workers.dev
+  cache-control: no-store
+donor: HTTP 200 {"status":"ok","service":"donor","time":"2026-11-24T23:23:25.948Z"}
+  access-control-allow-origin: https://bdo-organizer.tourmaline-headphones.workers.dev
+  cache-control: no-store
+booking: HTTP 200 {"status":"ok","service":"booking","time":"2026-11-24T23:23:26.110Z"}
+  access-control-allow-origin: https://bdo-organizer.tourmaline-headphones.workers.dev
+  cache-control: no-store
+
+--- FRONTEND CONFIG (public static asset, no secrets) ---
+index: HTTP 200, bytes 1428, contains app shell: true
+js/config.js: HTTP 200
+  drive URL present: true
+  donor URL present: true
+  booking URL present: true
+
+--- NEON POSTGRES ROWS (counts only; no secrets or JWTs) ---
+  bdo_drives: 6 rows
+  bdo_slots: 6 rows
+  bdo_donors: 13 rows
+  bdo_users: 13 rows
+  bdo_bookings: 1 rows
+  bdo_reminders: 2 rows
+  bdo_donations: 1 rows
+  bdo_reports: 1 rows
+  bdo_geocodes: 0 rows
+  latest booking id: drv_7f186c1f-44b8-4615-bf5b-8af66f304d64__donor-mwvblayc@demo.org
+  latest booking status: attended
+  latest booking createdAt: 2026-11-24T23:22:50.147Z
+
+--- CROSS-SERVICE CONFIGURATION NOTE ---
+All three Workers set compatibility_flags = ["global_fetch_strictly_public"] so
+Worker-to-Worker calls to the other public workers.dev URLs are allowed.
+Temporary free account limit: 0 cron triggers, so the 06:00 trigger declared in
+services/booking/wrangler.toml could not be attached to this preview account.
+The manual organizer Reminder button and POST /internal/reminders/daily were verified.

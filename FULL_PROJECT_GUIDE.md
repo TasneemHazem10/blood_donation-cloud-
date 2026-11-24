@@ -229,7 +229,7 @@ npx wrangler secret put BOOKING_SERVICE_URL --config services/drive/wrangler.tom
 npx wrangler deploy --config frontend/wrangler.toml
 ```
 
-**Cloudflare status:** `infra/scripts/configure-cloudflare.js` exists and `npm run deploy:cloudflare` runs it. It generates `frontend/js/config.js`, applies the Neon schema, deploys Workers/Pages, sets secrets and verifies health when real credentials are supplied. The Booking Worker has `[triggers] crons = ["0 6 * * *"]` plus a `scheduled()` handler; the Booking Lambda handles EventBridge `aws.events` scheduled events. `wrangler.toml` defaults `CORS_ORIGINS` to `https://bdo-organizer.pages.dev` (the deploy script sets the detected Pages URL as a secret). Public Cloudflare/Neon deployment is still pending real credentials and a public URL; confirm Cloudflare + Neon with the instructor and keep the reply screenshot. Full checklist: `docs/deployment.md`.
+**Cloudflare status:** public deployment is live at **https://bdo-organizer.tourmaline-headphones.workers.dev** with the three Workers on the same `tourmaline-headphones.workers.dev` subdomain and Neon project `cloud` / branch `production`. `infra/scripts/configure-cloudflare.js` and `npm run deploy:cloudflare` remain available for redeployment to a permanent account. All three `wrangler.toml` files use `compatibility_flags = ["global_fetch_strictly_public"]` so Worker-to-Worker calls work (error `1042` otherwise). The Booking Worker has `[triggers] crons = ["0 6 * * *"]` plus a `scheduled()` handler; the Booking Lambda handles EventBridge `aws.events` scheduled events. The temporary preview account allows 0 cron triggers, so that trigger could not be attached there; the manual Reminder button and internal daily route were verified. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-*.png`. Full checklist: `docs/deployment.md`.
 
 ---
 
@@ -264,10 +264,10 @@ Video guidance (≤5 minutes): show the public URL first, run steps 1–9 quickl
 | 3. Service/API list, ER diagram, CRUD | `docs/api.md` (all 39 routes), `docs/data-model.md` (ER + CRUD), `docs/openapi.yaml` |
 | 4. Methodology / technical solution | This guide sections 2–4; file structure; shared runtime table |
 | 5. External integration | `shared/external/*.js`; `docs/architecture.md` section 6; Turnstile widget in `auth.js`; `EMAIL_DEV_LOG` vs Brevo response. Live Nominatim evidence is in `evidence/DRV-05-live-geocode.txt`; `TEST_MODE` is used only in tests/smoke |
-| 6. Deployment approach | `docs/deployment.md`; verified Floci `ALL CHECKS PASSED` at `http://4f503503dd.execute-api.localhost.floci.io:4566`; cloud dashboard screenshots; public URL screenshot still pending |
-| 7. GitHub repository | `[REPO_URL]` + branch/PR/tag evidence — **not yet created** |
-| 8. Demo video | `[VIDEO_URL]` recorded from `<DEPLOYED_URL>` — **not yet created** |
-| 9. Testing | `npm test` 53/53; local smoke 22/22; Floci smoke 22/22 through the gateway with `storage:"s3"`; `docs/testing.md` case IDs + captured `curl`/Postman responses, test-run screenshots, DB rows |
+| 6. Deployment approach | `docs/deployment.md`; verified Floci `ALL CHECKS PASSED` at `http://4f503503dd.execute-api.localhost.floci.io:4566`; public Cloudflare + Neon URLs, health/CORS, config and Neon rows in `evidence/PUBLIC-DEPLOYMENT.txt`; public smoke in `evidence/PUBLIC-SMOKE.txt`; public browser in `evidence/PUBLIC-E2E-*.png` |
+| 7. GitHub repository | `[REPO_URL]` + branches exist; PR/review/tag evidence — **not yet created** |
+| 8. Demo video | `[VIDEO_URL]` recorded from **https://bdo-organizer.tourmaline-headphones.workers.dev** — **not yet created** |
+| 9. Testing | `npm test` 53/53; local smoke 22/22; Floci smoke 22/22 (`storage:"s3"`); public Cloudflare/Neon smoke 22/22 (`storage:"database"`); `docs/testing.md` case IDs + captured `curl`/Postman responses, test-run screenshots, DB rows |
 | 10. Limitations | `docs/limitations.md` with reason + improvement per item |
 | Individual statements | `docs/individual-statements.md` — three statements, nine mandatory items each; replace all placeholders |
 
@@ -288,14 +288,14 @@ Video guidance (≤5 minutes): show the public URL first, run steps 1–9 quickl
 - [x] Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in are verified locally and on Floci.
 - [x] `npm test`: 53 tests, 53 pass, 0 fail across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`.
 - [x] Local smoke `scripts/smoke.mjs`: 22 PASS with fresh accounts each run and `BDO_API_URL` support; Floci smoke through the gateway: 22 PASS, report `storage:"s3"`.
-- [x] `infra/scripts/configure-cloudflare.js` exists and `npm run deploy:cloudflare` runs it; Cloudflare Booking Worker has `[triggers] crons = ["0 6 * * *"]` and `scheduled()`; Booking Lambda handles EventBridge `aws.events`.
+- [x] Public Cloudflare Workers + Neon deployment is live at `https://bdo-organizer.tourmaline-headphones.workers.dev`; all three health endpoints 200 with correct CORS, deployed config points to the public Workers, and public smoke is 22/22 (`evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-*.png`). All three Workers set `global_fetch_strictly_public`; the preview plan's 0-cron-trigger limit is documented.
 - [x] This documentation set (no source, package, infra, test or README file was modified).
 
 ### Still to do (unresolved, not claimed)
 
-1. Initialise Git, create branches/PRs, protect `main`, tag `v1.0`, create the zip and video, and record the repository/video links; CODEOWNERS stay placeholders until students' real GitHub usernames are known.
-2. Obtain real Cloudflare + Neon credentials, set Worker secrets and real service URLs, verify CORS against the real hostname, and deploy the public URL.
-3. Capture the instructor Cloudflare/Neon approval screenshot and the frontend browser screenshot (both still pending).
+1. Create real per-student commits/PRs, protect `main`, tag `v1.0`, create the zip and video, and record the repository/video links; CODEOWNERS stay placeholders until students' real GitHub usernames are known.
+2. Claim the temporary Cloudflare preview account (or redeploy to a permanent Cloudflare + Neon account) so the public URLs survive beyond the preview window; one-time claim link was supplied out-of-band and must not be committed.
+3. Capture the instructor Cloudflare/Neon approval screenshot; the public frontend browser screenshots are already in `evidence/PUBLIC-E2E-*.png`.
 4. Optionally obtain real Turnstile/Brevo test keys, set `EMAIL_MODE` to a live value for one controlled run, and capture redacted evidence.
 5. Capture manual Nominatim/geocode evidence (tests and smoke use `TEST_MODE` deterministic coordinates) and fill `docs/testing.md` Actual/Result columns with captured output.
 6. Wake Neon before the demo, verify `3/3 services online`, and record the ≤5-minute video from the public URL.

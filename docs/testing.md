@@ -7,8 +7,8 @@
 | Unit | `node --test` on pure rule modules: `driveRules`, `eligibility`, `bookingRules`, `templates`, `crypto`, `validate` | `TEST_MODE=1` gives deterministic geocoding; `setClock()` can freeze `now()` |
 | API | Supertest against the three Express apps with `setServiceFetch()` stubs for cross-service calls | Same controllers and route tables as production |
 | Integration | Real HTTP calls across all three services on local ports 3001/3002/3003 | Shared SQLite file through `shared/context.js` |
-| Deployed system | Smoke flow against the Floci API Gateway with real JWTs and DynamoDB | Same script as local, selected with `BDO_API_URL` |
-| End-to-end | Organizer creates drive → donor registers/books → email recorded → organizer checks in → report updates | Run locally and on Floci; public Cloudflare run still pending credentials |
+| Deployed system | Smoke flow against the Floci API Gateway with real JWTs and DynamoDB; same script against the three public Cloudflare Workers with Neon | Selected with `BDO_API_URL` (Floci) or `BDO_DRIVE_URL`/`BDO_DONOR_URL`/`BDO_BOOKING_URL` (public) |
+| End-to-end | Organizer creates drive → donor registers/books → email recorded → organizer checks in → report updates | Run locally, on Floci and on the public Cloudflare + Neon deployment (22/22 each) |
 
 Commands:
 
@@ -106,16 +106,16 @@ bash infra/deploy-all.sh          # Git Bash; ends with ALL CHECKS PASSED
 
 | ID | Scenario | Expected | Actual | Result | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| E2E-01 | Drive + slots → register → book → email → check-in → report | Full journey, consistent seat/donation/report | IN01 plus 22/22 local and 22/22 Floci smoke | PASS | API responses + DB rows |
+| E2E-01 | Drive + slots → register → book → email → check-in → report | Full journey, consistent seat/donation/report | IN01 plus 22/22 local, 22/22 Floci and 22/22 public Cloudflare/Neon smoke | PASS | API responses + DB rows; `evidence/PUBLIC-SMOKE.txt` |
 | E2E-02 | Remove JWT mid-journey before booking | `401`, no booking or seat change | 401 in IN02 and both smoke runs | PASS | response + seat count |
 | E2E-03 | Cancel drive after a booking | booking `cancelled`, seat `booked:0`, email logged | DR10/DR12 + IN01/BK06 | PASS | three service responses + rows |
 | E2E-04 | Frontend shows `3/3 services online` and live counts | Green footer, counts change after booking | Headless Chrome rendered `3/3 services online` in green on the home and `#/drives` pages; the drives page displays a live API drive with `20 seats`. Seat-count changes after booking are covered by BOK-02 and the smoke runs | PASS | `evidence/E2E-04-home.png`, `evidence/E2E-04-drives.png`; DOM excerpt `<span id="systemStatus" style="color: var(--green);">3/3 services online</span>` |
 | E2E-05 | Reminder run for drive date | first `sent`/`dev-log`, second `skipped` | 1 sent + 1 skipped in both smoke runs | PASS | responses + reminder log |
-| E2E-06 | Repeat E2E-01 on public Cloudflare URL | Same result with Worker URLs and Neon rows | No credentials/public URL available yet | PENDING | URL in browser + responses + Neon rows |
+| E2E-06 | Repeat E2E-01 on public Cloudflare URL | Same result with Worker URLs and Neon rows | 22/22 PASS against the three public Workers with Neon; booking 201/409, reminders 1 sent + 1 skipped, check-in `attended`, donation + report rows; report `storage:"database"` | PASS | `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png` |
 
 ## 6. Evidence guidance for the report
 
-* Generated request/response evidence for DRV-05, DON-14 and DON-16 is committed under [`evidence/`](evidence/); regenerate it with `npm run evidence:capture`.
+* Generated request/response evidence for DRV-05, DON-14 and DON-16 is committed under [`evidence/`](evidence/); regenerate it with `npm run evidence:capture`. Public deployment, public smoke and public browser evidence are `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt` and `evidence/PUBLIC-E2E-*.png`.
 * Put one request and one response per endpoint into the relevant individual statement; use `curl -i` or Postman’s “Copy as cURL”.
 * Save screenshots/JSON files named with the test ID, e.g. `evidence/BOK-06-checkin.png`.
 * Mark a row PASS only from an observed result; `PENDING` above means the capability exists but evidence has not been captured.

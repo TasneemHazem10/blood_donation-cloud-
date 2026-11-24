@@ -1,6 +1,6 @@
 # Final Report — Blood Donation Drive Organizer (BloodLink)
 
-**Status of this draft.** Sections 1–6, 9 and 10 describe code and results that are verified in this workspace on 25 Nov 2026. Sections 7–8 and the browser/public-cloud rows in section 9 cannot be completed from this workspace alone: they require the team's GitHub repository, the public Cloudflare/Neon credentials and a recorded video. Those items are marked **PENDING** rather than claimed. The three mandatory individual statements are in [`docs/individual-statements.md`](individual-statements.md).
+**Status.** Sections 1–6, 9 and 10 describe code and results verified in this workspace on 25 Nov 2026. The public Cloudflare Workers + Neon deployment is live and included in section 6; the remaining items are the team's real per-student Git history/PRs (section 7) and a recorded demo video (section 8), which require real identities and a human-created artefact. Those are marked **PENDING** rather than claimed. The three mandatory individual statements are in [`docs/individual-statements.md`](individual-statements.md).
 
 ---
 
@@ -134,7 +134,7 @@ Nine logical tables (`bdo_users`, `bdo_donors`, `bdo_donations`, `bdo_drives`, `
 | Cloudflare Turnstile | Donor registration/login | Bot protection before an account is created or a token is issued | `TURNSTILE_SITE_KEY` injected into the SPA config; `TURNSTILE_SECRET` sent only to the Worker/Lambda via env/secret store. `TEST_MODE=1` bypasses it locally; with a secret configured and no token the API returns `401` (`evidence/DON-16-turnstile-missing-token.txt`) |
 | Brevo email API | Booking confirmations, cancellations and daily reminders | Real email delivery in production | `BREVO_API_KEY` and `EMAIL_FROM` from env; without them `EMAIL_MODE=log` writes the message to the audit table and service log |
 | AWS S3 | Drive report CSV snapshots and the website bucket on Floci | Durable report artefacts and static hosting | `REPORTS_BUCKET` from Floci deployment state; path-style S3 client for the emulator |
-| Neon Postgres + Cloudflare cron | Data layer and 06:00 daily reminder trigger on the public deployment | Managed serverless database and scheduled job | `DATABASE_URL` and Worker secrets; Cron Trigger declared in `services/booking/wrangler.toml` |
+| Neon Postgres + Cloudflare cron | Data layer and 06:00 daily reminder trigger on the public deployment | Managed serverless database and scheduled job | `DATABASE_URL` and Worker secrets; Cron Trigger declared in `services/booking/wrangler.toml` but not attachable on the temporary preview account (0 cron triggers). Manual Reminder button and `POST /internal/reminders/daily` verified. |
 
 Every credential is read from an environment variable by `shared/config.js`; no secret appears in code, `frontend/js/config.js`, the repository or the evidence files. Turnstile and Brevo real-key runs are **PENDING** because no live keys were supplied.
 
@@ -144,13 +144,15 @@ Every credential is read from an environment variable by `shared/config.js`; no 
 
 **Verified — Floci / AWS emulator (service-based, containers).** Docker Compose starts Floci; `npm run zip:all` creates three Lambda zips; `bash infra/deploy-all.sh` creates nine DynamoDB tables, three Lambdas (`bdo-drive-service`, `bdo-donor-service`, `bdo-booking-service`), two S3 buckets (`bdo-drive-reports`, `bdo-web`), IAM roles/policies, CloudWatch log groups and an EventBridge rule. API Gateway base URL: `http://4f503503dd.execute-api.localhost.floci.io:4566`. Website: `http://localhost:4566/bdo-web/index.html`. Health checks, drive list and 22/22 smoke steps passed with `ALL CHECKS PASSED`. Resource details and screenshots checklist: [`docs/deployment.md`](deployment.md).
 
-**Prepared but not executed — public Cloudflare Workers + Neon.** `npm run deploy:cloudflare` bundles three Workers, applies `infra/db/schema.sql` to Neon, sets secrets, deploys the Workers, writes the public URLs into `frontend/js/config.js`, deploys the SPA to Cloudflare Pages, sets CORS origins and verifies the three health endpoints. It requires `DATABASE_URL`, `JWT_SECRET`, `INTERNAL_KEY`, `ORGANIZER_INVITE`, three `*_WORKER_URL` values and optional Turnstile/Brevo keys. **PENDING:** no real Neon connection string, Worker URLs or keys were available, so no public URL can be reported yet. Once deployed, record the URL in `.data/cloudflare-urls.json` (git-ignored) and paste it here: **[DEPLOYED_URL]**.
+**Verified — public Cloudflare Workers + Neon (serverless/PaaS).** The deployed website is **https://bdo-organizer.tourmaline-headphones.workers.dev** and the three service URLs are `https://bdo-drive.tourmaline-headphones.workers.dev`, `https://bdo-donor.tourmaline-headphones.workers.dev` and `https://bdo-booking.tourmaline-headphones.workers.dev`. The SPA is served as Cloudflare Workers static assets; Neon project `cloud` / branch `production` stores the nine JSONB tables. All three health endpoints return 200 with the correct CORS origin, the deployed `frontend/js/config.js` points to the public Workers, and `npm run smoke` returns **22/22 PASS** against the public deployment. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`.
+
+All three Workers set `compatibility_flags = ["global_fetch_strictly_public"]` because Cloudflare otherwise returns `404 error code: 1042` when one Worker fetches another Worker's public `workers.dev` URL. Secrets (`DATABASE_URL`, `JWT_SECRET`, `INTERNAL_KEY`, invite) were supplied only as Worker secrets from git-ignored files. The deployment uses a temporary preview account: claim it with the one-time link supplied outside the repository, or redeploy to a permanent account. That preview plan allows 0 cron triggers, so the 06:00 Cron Trigger declared in `services/booking/wrangler.toml` could not be attached; the manual Reminder button and internal daily route were verified.
 
 ---
 
 ## 7. GitHub repository
 
-**PARTIAL.** The repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**. `main` (HEAD `5ffa0ef`) and the three branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` have been pushed to that remote. `main` contains import commit `2139745` plus several documentation/evidence commits by Tasneem's configured identity (*not* a claim that she wrote every service). There is still **no pull request, review, `v1.0` tag or per-student commit**. The intended structure is:
+**PARTIAL.** The repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**. The latest `main` and the three branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` have been pushed to that remote. `main` contains the import commit plus documentation/evidence commits by Tasneem's configured identity (*not* a claim that she wrote every service). There is still **no pull request, review, `v1.0` tag or per-student commit**. The intended structure is:
 
 * `main` — protected, deployable state; `feature/s1-*`, `feature/s2-*`, `feature/s3-*` — one branch per student; pull requests reviewed by another student; `v1.0` tag used for the submitted ZIP.
 * `.github/CODEOWNERS` maps `services/drive/` to Habiba, `services/donor/` to Tasneem, `services/booking/` to Hala and shared folders to all three. The real GitHub handles must replace the placeholders before submission.
@@ -162,20 +164,20 @@ To fill this section: create the repository, push `main`, make one real commit p
 
 ## 8. Demo video
 
-**PENDING.** A ≤5-minute video must be recorded from the **public Cloudflare URL** (not localhost, not Floci), with the link set to "anyone with the link can view". Required order: full end-to-end journey first (organizer creates drive and slot → donor registers/books → reminder log → check-in → report), then one short segment per student showing their service's functions. Insert the viewable link here: **[VIDEO_URL]**.
+**PENDING.** A ≤5-minute video must be recorded from the **public Cloudflare URL** (not localhost, not Floci), with the link set to "anyone with the link can view". Required order: full end-to-end journey first (organizer creates drive and slot → donor registers/books → reminder log → check-in → report), then one short segment per student showing their service's functions. The public URL to record is **https://bdo-organizer.tourmaline-headphones.workers.dev**. No video link was available at the time of writing; insert it here before submission: **[VIDEO_URL]**.
 
 ---
 
 ## 9. Testing
 
-`npm test` → **53 tests, 53 pass, 0 fail** (six test files). Local smoke → **22/22 PASS**. Floci smoke through API Gateway → **22/22 PASS**, report `storage:"s3"`. Evidence files: `evidence/DRV-05-live-geocode.txt`, `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt`. Full case-by-case table with actual results and evidence links: [`docs/testing.md`](testing.md).
+`npm test` → **53 tests, 53 pass, 0 fail** (six test files). Local smoke → **22/22 PASS**. Floci smoke through API Gateway → **22/22 PASS**, report `storage:"s3"`. Public Cloudflare + Neon smoke → **22/22 PASS** with report `storage:"database"`. Evidence files: `evidence/DRV-05-live-geocode.txt`, `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt`, `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`. Full case-by-case table with actual results and evidence links: [`docs/testing.md`](testing.md).
 
 | Case group | Covered | Result |
 | --- | --- | --- |
 | DRV-01–DRV-13 (Habiba) | health, create, slots, filters, live `?near=`, report, 400/401/403/404/409 errors | 13/13 PASS |
 | DON-01–DON-16 (Tasneem) | register, both roles, login, `me`, eligibility, profile, history, 400/401/403/409/429, Turnstile missing-token branch | 15/16 PASS; real Turnstile widget token PENDING |
 | BOK-01–BOK-19 (Hala) | book, list, cancel, check-in, reminders, internal routes, 400/401/403/409/502 | 19/19 PASS |
-| E2E-01–E2E-06 | full journey, auth removal, drive cancellation, browser footer, reminders, public deployment | E2E-01/02/03/04/05 PASS (browser footer captured in `evidence/E2E-04-home.png`); E2E-06 (public URL) PENDING |
+| E2E-01–E2E-06 | full journey, auth removal, drive cancellation, browser footer, reminders, public deployment | E2E-01–E2E-06 PASS. Local browser footer in `evidence/E2E-04-home.png`; public browser in `evidence/PUBLIC-E2E-*.png`; public 22/22 in `evidence/PUBLIC-SMOKE.txt` |
 
 Invalid cases include missing fields, unknown ids, wrong owner/role, overlapping slots, full slots, duplicate bookings, ineligible donors, malformed outcomes/dates and missing internal keys. Response bodies use the common `error.code`/`error.message` envelope.
 
@@ -187,10 +189,11 @@ Open items with reason and proposed improvement are tracked in [`docs/limitation
 
 | Limitation | Reason | Proposed improvement |
 | --- | --- | --- |
-| No public Cloudflare/Neon URL or cloud evidence yet (E2E-06) | Credentials and Worker URLs not supplied | Run `npm run deploy:cloudflare` with real secrets; capture health, browser, Neon and smoke evidence |
-| No repository, PRs, tag or ZIP (section 7) | Git not initialised; GitHub handles unknown | Create repo, real student commits/PRs, tag `v1.0`, zip that tag |
-| No demo video (section 8) | Depends on the public URL | Record ≤5-minute walkthrough from the deployed URL |
-| Public-URL browser evidence for `3/3 services online` | The captured screenshots are from the local SPA; the deployed SPA is not available yet | Repeat the headless-browser capture against the Cloudflare Pages URL after deployment |
+| Temporary Cloudflare preview account must be claimed or the public URLs may expire | No permanent Cloudflare login was available while deploying | Claim the preview account using the one-time link supplied out-of-band, or redeploy to a permanent account and update the docs |
+| No Cloudflare Cron Trigger on the temporary free account | Preview plan allows 0 cron triggers | Attach `0 6 * * *` on a permanent account; until then use the organizer Reminder button or `POST /internal/reminders/daily` |
+| No PRs, tag or ZIP (section 7) | Student GitHub handles/identities unknown | Add real per-student commits/PRs, tag `v1.0`, zip that tag |
+| No demo video (section 8) | Must be created by a person | Record ≤5-minute walkthrough from the public URL |
+| Public-URL browser evidence is a static screenshot, not an interactive recording | Headless Chrome captured the deployed home and drives pages; the video still has to show the journey | Record the demo video from the public URL |
 | In-memory login rate limiter and in-process reminder state | Simplifies three-runtime compatibility | Add Cloudflare WAF rate limiting and a shared durable store |
 | DynamoDB/Neon `search()` uses scan/filter rather than indexes | Document-model simplicity | Add GSIs/columns and pagination |
 | Recovery window if the process crashes between reserve and insert | Compensating release cannot run after a hard crash | Make reservation idempotent with a TTL hold |

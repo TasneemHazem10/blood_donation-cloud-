@@ -1,13 +1,13 @@
 # Individual contribution statements
 
-These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (53/53), local + Floci smoke (22/22 each) and the captured files in `evidence/`. The team repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**; `main` and three `feature/*` branches are pushed, but there is no PR, `v1.0` tag or per-student commit yet; no authorship claim is made for the import commit `2139745`. Local browser screenshots are in `evidence/E2E-04-*.png`; the public deployed URL, video, public-URL browser screenshot and real API keys also remain placeholders. Replace every `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
+These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (53/53), local + Floci + public Cloudflare/Neon smoke (22/22 each) and the captured files in `evidence/`. The team repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**; `main` and three `feature/*` branches are pushed, but there is no PR, `v1.0` tag or per-student commit yet; no authorship claim is made for the import commit. Local browser screenshots are `evidence/E2E-04-*.png` and public browser screenshots are `evidence/PUBLIC-E2E-*.png`. Public deployment evidence is `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`. The demo video and real API keys remain untested/pending. Replace every remaining `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
 
 Shared evidence placeholders used below:
 
 * `[REPO_URL]` — **https://github.com/TasneemHazem10/blood_donation-cloud-.git** (`main` and the three feature branches are pushed; PRs/tag still pending).
 * `[PR_LINK_*]`, `[COMMIT_HASH_*]` — real PR/commit links per contribution.
 * `[EVIDENCE: ...]` — screenshot, copied request/response, SQL row image or log excerpt.
-* `[DEPLOYED_URL]` — public Cloudflare URL (not localhost).
+* `[DEPLOYED_URL]` — **https://bdo-organizer.tourmaline-headphones.workers.dev** (public Cloudflare URL, not localhost).
 
 ---
 
@@ -82,7 +82,7 @@ Verified by local and Floci smoke, which cover 400/401/403/404/409 cases; captur
 
 Automated cases DRV-01–DRV-13 are in `docs/testing.md` (health, create, slot add, filters, report, missing field, unknown id, wrong owner, overlap, full slot, cancel/delete, future completion). They are implemented in `tests/drive-api.test.js` and `tests/integration.test.js` with `node --test` and Supertest; `npm test` reports 53 tests, 53 pass, 0 fail across all six test files.
 
-Verified by `npm test` (53/53 overall) and local + Floci smoke (22/22 each). DRV-05 additionally has live external-API evidence in `evidence/DRV-05-live-geocode.txt` (real Nominatim coordinates, cached rows and a `?near=` result with `distanceKm`).
+Verified by `npm test` (53/53 overall) and local + Floci smoke (22/22 each), plus the public Cloudflare/Neon run in `evidence/PUBLIC-SMOKE.txt` (drive create, slot create, report with `storage:"database"`). DRV-05 additionally has live external-API evidence in `evidence/DRV-05-live-geocode.txt` (real Nominatim coordinates, cached rows and a `?near=` result with `distanceKm`).
 
 ### 7. Integration work
 
@@ -108,7 +108,7 @@ Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_HABIBA_RULES], [COMMIT
 1. **SQLite "database is locked" while three local services initialised the same file.** Fixed by enabling WAL, a 5-second busy timeout and `synchronous=NORMAL` in `shared/store/sqlite.js` (see `docs/notes.md`).
 2. **Port 8080 was already taken on the development machine.** Moved the website to **http://localhost:8090** in `infra/scripts/dev-all.js` and updated `CORS_ORIGINS`; the three APIs stayed on 3001/3002/3003. The seed script's final message was also corrected to 8090.
 3. **Floci geocode cache table.** Added `bdo_geocodes` to `infra/services/drive.sh`; the verified deployment creates nine DynamoDB tables and the cache is available. DRV-05 now has a live `?near=` capture outside `TEST_MODE=1` in `evidence/DRV-05-live-geocode.txt`.
-4. **CORS origin differs per deployment** (8090 local, 4566 Floci, Pages URL on Cloudflare). Handled with the `CORS_ORIGINS` env var; `wrangler.toml` defaults to `https://bdo-organizer.pages.dev`, and `configure-cloudflare.js` sets the detected Pages URL as a secret. Verify against the real hostname during public deployment.
+4. **CORS origin differs per deployment** (8090 local, 4566 Floci, Workers static-asset URL on Cloudflare). Handled with the `CORS_ORIGINS` env var; on the public deployment it is set to `https://bdo-organizer.tourmaline-headphones.workers.dev` and verified by the `Access-Control-Allow-Origin` health-check header in `evidence/PUBLIC-DEPLOYMENT.txt`.
 
 Evidence: `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` show the SPA running on **http://localhost:8090** with `3/3 services online`; the pre-fix WAL error log screenshot is still a placeholder.
 
@@ -175,7 +175,7 @@ Verified by local + Floci smoke for 400/401/403/409 cases; the 429 branch is cap
 
 Automated cases DON-01–DON-16 are in `docs/testing.md`: valid registration/login, both roles, `me`, eligibility states, profile update, history, duplicate email, wrong password, missing token, role misuse, invalid profile, rate limit, deletion blocked by booking, Turnstile without token. Most are covered by `tests/donor-api.test.js` and `tests/integration.test.js`; DON-14 and the missing-token branch of DON-16 are now covered by `tests/pending-evidence.test.js` and captured in `evidence/DON-14-rate-limit.txt` and `evidence/DON-16-turnstile-missing-token.txt`. Validation with a real Turnstile widget token is still pending a live test key.
 
-Verified by `npm test` (53/53 overall) and local + Floci smoke (22/22 each); keep captured output for report evidence.
+Verified by `npm test` (53/53 overall), local + Floci smoke (22/22 each) and the public Workers + Neon run in `evidence/PUBLIC-SMOKE.txt` (register, login, eligibility, 401/409 cases); keep captured output for report evidence.
 
 ### 7. Integration work
 
@@ -198,7 +198,7 @@ Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_DONOR_CRYPTO], [COMMIT
 
 ### 9. Significant difficulties and fixes
 
-1. **Worker CPU budget vs password hashing.** 60,000 PBKDF2 iterations are acceptable locally but must be measured on the deployed Worker; the plan is to lower iterations and re-hash demo accounts if it times out (`docs/notes.md`).
+1. **Worker CPU budget vs password hashing.** 60,000 PBKDF2 iterations are acceptable locally; register/login succeeded repeatedly on the deployed Worker during `evidence/PUBLIC-SMOKE.txt`, so no timeout was observed. Further load testing would still be needed before production (`docs/notes.md`).
 2. **No real Turnstile secret locally.** The code returns `{mode:'development'}` when `TURNSTILE_SECRET` is unset; real evidence requires a test key in Worker secrets and a redacted screenshot.
 3. **Eligibility edge cases (deferral vs interval vs age).** Solved by evaluating rules in a fixed order in `evaluate()` and returning a machine-readable `nextEligibleDate`, including `null` when age makes donation permanently ineligible.
 4. **Deleting a donor with upcoming bookings would orphan booking rows.** Solved by calling Booking's active-bookings endpoint and returning `409` until the donor cancels.
@@ -269,7 +269,7 @@ Verified by local + Floci smoke for 400/401/403/409 cases; capture placeholder r
 
 Automated cases BOK-01–BOK-19 are in `docs/testing.md`: normal booking/cancel/check-in, reminder idempotency, ineligible donor, full slot, double booking, unknown id, donor calling check-in, wrong outcome, wrong organizer, missing internal key, daily internal route. They are implemented in `tests/booking-api.test.js`, `tests/shared-rules.test.js` and `tests/integration.test.js`; the full suite is 53/53 PASS and both smoke runs are 22/22 PASS.
 
-Verified by `npm test` (53/53) and local + Floci smoke (22/22 each, report `storage:"s3"` on Floci); keep captured output for report evidence.
+Verified by `npm test` (53/53), local + Floci smoke (22/22 each, report `storage:"s3"` on Floci) and the public Workers + Neon run in `evidence/PUBLIC-SMOKE.txt` (booking 201/409, reminders 1 sent + 1 skipped, check-in `attended`, donation recorded); keep captured output for report evidence.
 
 ### 7. Integration work
 
@@ -294,8 +294,8 @@ Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_HALA_RESEAT], [COMMIT_
 
 1. **Concurrent booking / overbooking risk.** Solved with guarded `reserveSeat()` writes (SQLite/Neon conditional update; DynamoDB read-compare-update with retry) and compensation if the booking insert throws. Residual crash-window documented in `docs/limitations.md`.
 2. **Duplicate reminder emails.** Solved with the deterministic reminder id and a `get()` check before sending; the second run reports `skipped`.
-3. **Scheduling on two clouds.** Floci's EventBridge event shape was solved with a `source === 'aws.events'` branch in `lambda.js`; Cloudflare now declares a Cron Trigger `0 6 * * *` and exports `scheduled()` in `worker.js`. Both call `sendForDate()`; the organizer Emails button remains a manual fallback, and deployed execution evidence is still to be captured.
+3. **Scheduling on two clouds.** Floci's EventBridge event shape was solved with a `source === 'aws.events'` branch in `lambda.js`; Cloudflare declares a Cron Trigger `0 6 * * *` and exports `scheduled()` in `worker.js`. Both call `sendForDate()`; the organizer Emails button remains a manual fallback. On the public deployment the organizer button and `POST /internal/reminders/daily` were verified (`evidence/PUBLIC-SMOKE.txt`), but the temporary free account allows 0 cron triggers, so the scheduled execution itself could not be attached there.
 4. **Free-tier email limits.** `EMAIL_MODE=log` locally avoids real sends; any live test must use a Brevo test key and only one controlled reminder run, with keys redacted from evidence.
 5. **Booking id separator.** `bookingKey()` uses `driveId__donorId`; `idParam()` accepts the `__` separator, and local + Floci smoke verify cancel/check-in with real ids.
 
-Verified by local + Floci smoke: 1 reminder sent + 1 skipped on the second run; Floci cron wiring is configured but public Worker execution evidence is still pending.
+Verified by local, Floci and public smoke: 1 reminder sent + 1 skipped on the second run in each; the public manual reminder route and organizer button are evidenced in `evidence/PUBLIC-SMOKE.txt`. The Cloudflare Cron Trigger itself could not be attached to the temporary preview account (0 cron triggers), so only its code path and manual equivalent are verified.

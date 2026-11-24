@@ -53,7 +53,7 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 * **Problem:** common Node crypto packages are not available unchanged in Cloudflare Workers; CPU time on the free plan is limited.
 * **Fix:** `shared/crypto.js` uses WebCrypto PBKDF2-SHA256 with 60,000 iterations and a random 16-byte salt (`pbkdf2$60000$<salt>$<hash>`), constant-time comparison, and HMAC-SHA256 JWTs with `iat`/`exp` (7 days). The same module runs in Node 22 and Workers.
-* **Status:** implemented and exercised by registration/login tests and both smoke runs; deployed Worker CPU measurement still pending (L7).
+* **Status:** implemented and exercised by registration/login tests and local, Floci and public smoke runs. Register/login succeeded repeatedly on the deployed Worker, so no CPU timeout was observed; formal load measurement is still pending (L7).
 
 ### Entry 8 — Geocoding with a public API
 
@@ -77,13 +77,13 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 * **Problem:** the SPA needs the API base URLs at load time; secrets cannot be in the browser.
 * **Fix:** `frontend/js/api.js` reads `window.BDO.services` from `frontend/js/config.js`. `infra/frontend.sh` rewrites it for Floci and uploads it to `s3://bdo-web/js/config.js`. `infra/scripts/configure-cloudflare.js` generates the same file for Cloudflare from env vars via `npm run deploy:cloudflare`; no secrets are written to the browser config.
-* **Status:** Floci verified (`http://localhost:4566/bdo-web/index.html` → 200); Cloudflare generation implemented but not executed without credentials.
+* **Status:** Floci verified (`http://localhost:4566/bdo-web/index.html` → 200); Cloudflare verified at `https://bdo-organizer.tourmaline-headphones.workers.dev/js/config.js`, which contains the three public Worker URLs (see `evidence/PUBLIC-DEPLOYMENT.txt`).
 
 ### Entry 12 — Reminder scheduling differs per deployment
 
 * **Problem:** the daily reminder should be automatic, but Floci and Cloudflare expose different scheduler mechanisms.
 * **Fix:** Floci `infra/services/booking.sh` creates EventBridge rule `bdo-daily-reminders` (`cron(0 6 * * ? *)`) targeting the Booking Lambda; `lambda.js` detects `source: 'aws.events'` and calls `sendForDate()` directly. Cloudflare `services/booking/wrangler.toml` declares `[triggers] crons = ["0 6 * * *"]` and `worker.js` exports `scheduled()`, which sets the Neon store and reuses the same function. The internal route and organizer button use the same idempotent reminder id.
-* **Status:** implemented on both platforms; Cloudflare cron execution still needs a deployed Worker to observe.
+* **Status:** implemented on both platforms; public manual reminder route and organizer button verified on Cloudflare. The temporary preview account allows 0 cron triggers, so the declared `0 6 * * *` trigger could not be attached there; attach it on a permanent account to observe a scheduled run.
 
 ### Entry 13 — Testability features
 
@@ -93,9 +93,9 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 ### Entry 14 — Evidence and ownership gap
 
-* **Problem:** the rebuilt workspace has no `.git` directory, so the individual statements cannot yet point to real commits or PRs.
-* **Fix required:** initialise the repository, create `/frontend`, `/services/*`, `/shared`, `/infra`, `/docs`, protect `main`, use one `feature/*` branch per student, require one teammate review per PR, tag `v1.0`, and make the zip and demo video from that tag. Real GitHub usernames are still needed for `.github/CODEOWNERS`.
-* **Status:** not done; all repository/PR/commit references in `docs/individual-statements.md` remain explicit placeholders.
+* **Problem:** generated commits cannot prove which student wrote which service.
+* **Fix required:** protect `main`, keep one `feature/*` branch per student, require one teammate review per PR, tag `v1.0`, and make the zip and demo video from that tag. Real GitHub usernames are still needed for `.github/CODEOWNERS`.
+* **Status:** repository, branches and pushed history exist at `https://github.com/TasneemHazem10/blood_donation-cloud-.git`; real per-student commits/PRs, tag, zip and video are still not done, so those references in `docs/individual-statements.md` remain explicit placeholders.
 
 ### Entry 15 — Documentation rebuild
 
@@ -137,4 +137,16 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 * **Observation:** documentation previously described tests, cron, config generation and Floci deployment as missing.
 * **Action:** ran `npm test` (53/53 after adding `tests/pending-evidence.test.js`), local smoke (22/22), `bash infra/deploy-all.sh` (ALL CHECKS PASSED), Floci smoke (22/22) and `npm run evidence:capture` (live Nominatim, 429 and Turnstile missing-token captures); reconciled all Markdown files with those results.
-* **Status:** complete for local/Floci. Public Cloudflare evidence, browser screenshots, Git history, zip and video remain to be produced.
+* **Status:** complete for local/Floci and public Cloudflare/Neon (`evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-*.png`). Git PR history, zip and video remain to be produced.
+
+### Entry 22 — Worker-to-Worker fetch failed with error 1042
+
+* **Problem:** after a successful public deployment, `POST /api/bookings` returned `404 {"error":{"code":"E404","message":"error code: 1042\n"}}`. `wrangler tail` on Booking showed the failing call was `GET https://bdo-drive.../internal/drives/...`; the same URL returned 200 from Node, proving the internal route, key and Neon data were correct.
+* **Fix:** Cloudflare rejects a Worker fetching another Worker on the same zone unless `global_fetch_strictly_public` is enabled. Added `compatibility_flags = ["global_fetch_strictly_public"]` to all three `wrangler.toml` files, rebundled and redeployed; the public smoke then passed 22/22.
+* **Status:** fixed; documented in `README.md` troubleshooting and `evidence/PUBLIC-DEPLOYMENT.txt`.
+
+### Entry 23 — Missing DATABASE_URL secret on first public deployment
+
+* **Problem:** all three health endpoints returned 500 after the first deploy; `wrangler tail` reported `DATABASE_URL is required for the Neon data layer`. The generated `.data/worker-secrets.json` had been written before `infra/secrets.env` was created, so `DATABASE_URL` was empty.
+* **Fix:** regenerated the secrets file from the git-ignored `infra/secrets.env` (pooled Neon connection string) and redeployed the three Workers.
+* **Status:** fixed; all three health checks returned 200 afterwards.

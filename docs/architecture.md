@@ -10,9 +10,9 @@ The system deliberately uses **one controller set per service that runs unchange
 | --- | --- | --- | --- | --- |
 | Local development | Static SPA on `http://localhost:8090` | Three Express processes on ports `3001`, `3002`, `3003` | One shared SQLite file `.data/bdo.sqlite` | Fast iteration; no cloud account needed |
 | Floci / AWS emulator | Static site in bucket `bdo-web` | Three Lambda functions behind one API Gateway HTTP API (verified: `http://4f503503dd.execute-api.localhost.floci.io:4566`) | 9 DynamoDB tables + S3 report bucket + CloudWatch Logs | Lab-style AWS evidence on a local emulator |
-| Cloudflare + Neon (public target) | Cloudflare Pages project `bdo-organizer` | Three Cloudflare Workers `bdo-drive`, `bdo-donor`, `bdo-booking` | Neon Postgres tables (`id text`, `data jsonb`) | Public deployment without a payment card |
+| Cloudflare + Neon (public deployment) | Cloudflare Workers static-asset site `bdo-organizer` | Three Cloudflare Workers `bdo-drive`, `bdo-donor`, `bdo-booking` | Neon Postgres tables (`id text`, `data jsonb`) | Public HTTPS URL without a payment card |
 
-> **Status note:** the Cloudflare/Neon path is the intended public deployment. The Worker entry points, `wrangler.toml` files and `infra/db/schema.sql` exist; `infra/scripts/configure-cloudflare.js` also exists and `npm run deploy:cloudflare` runs it. The Booking Worker has `[triggers] crons = ["0 6 * * *"]` and a `scheduled()` handler, and the Booking Lambda handles EventBridge `aws.events`. Public Cloudflare/Neon deployment remains pending real credentials and a public URL. See `docs/deployment.md`.
+> **Status note:** the Cloudflare/Neon path is the **live public deployment** at **https://bdo-organizer.tourmaline-headphones.workers.dev**. The Worker entry points, `wrangler.toml` files and `infra/db/schema.sql` are deployed; all three Workers set `global_fetch_strictly_public` so cross-service public HTTP calls work. The Booking Worker has `[triggers] crons = ["0 6 * * *"]` and a `scheduled()` handler, and the Booking Lambda handles EventBridge `aws.events`. The temporary preview account allows 0 cron triggers, so the manual reminder route was verified instead. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`. See `docs/deployment.md`.
 
 ## 2. Three-layer view
 

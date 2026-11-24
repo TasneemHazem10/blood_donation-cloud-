@@ -2,10 +2,10 @@
 
 This file is the hand-over checklist for the **Blood Donation Drive Organizer** project.
 Everything marked ✅ is already implemented, tested, evidenced and pushed to
-**https://github.com/TasneemHazem10/blood_donation-cloud-.git**.
-Everything marked ☐ cannot be completed from this workspace: it needs real accounts, real
-identities, or a human-created artefact. Nothing below is claimed as done until you
-perform it.
+**https://github.com/TasneemHazem10/blood_donation-cloud-.git**, including the live public
+Cloudflare Workers + Neon deployment. Everything marked ☐ cannot be completed from this
+workspace: it needs real student identities/repo settings or a human-recorded video. Nothing
+below is claimed as done until you perform it.
 
 ---
 
@@ -13,11 +13,12 @@ perform it.
 
 | Item | Status |
 |---|---|
-| Three services + SPA + shared modules + infra | ✅ pushed on `main` (`532fd3a`) |
+| Three services + SPA + shared modules + infra | ✅ pushed on `main` (see `git log -1`) |
 | Branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` | ✅ pushed (currently identical to `main`) |
 | `npm test` | ✅ 53 tests, 53 pass, 0 fail |
 | Local smoke / Floci smoke | ✅ 22/22 each; Floci `ALL CHECKS PASSED` |
-| Evidence files | ✅ `evidence/DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-home.png`, `E2E-04-drives.png` |
+| Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.tourmaline-headphones.workers.dev`; public smoke 22/22 |
+| Evidence files | ✅ `evidence/DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png` |
 | Report draft | ✅ `docs/report.md` sections 1–10 + appendix |
 | Three 9-item statements | ✅ `docs/individual-statements.md` |
 
@@ -25,9 +26,8 @@ perform it.
 
 ## 1. The minimum information I need from you
 
-Copy this block, fill it, and send it back. **Do not put real secrets in a file that gets committed.**
-For deployment you can either set the variables in your own shell and ask me to run the command,
-or provide them here temporarily and I will never write them into the repository.
+The public deployment is already live, so **no database URL, JWT secret, internal key or invite
+code is needed from you**. Only the following are still needed from the team:
 
 ```text
 # Identities (for real per-student commits and CODEOWNERS)
@@ -41,27 +41,13 @@ HALA_GITHUB_USERNAME=
 # Repository access
 REPO_PUBLIC=yes/no          # if no, invite the module leader as collaborator
 
-# Public deployment (Cloudflare Workers + Neon)
-DATABASE_URL=               # Neon Postgres connection string
-JWT_SECRET=                 # long random string
-INTERNAL_KEY=               # another long random string
-ORGANIZER_INVITE=           # organiser signup code, e.g. blood2026
-DRIVE_WORKER_URL=           # https://bdo-drive.<account>.workers.dev
-DONOR_WORKER_URL=           # https://bdo-donor.<account>.workers.dev
-BOOKING_WORKER_URL=         # https://bdo-booking.<account>.workers.dev
-FRONTEND_URL=               # e.g. https://bdo-organizer.pages.dev (or leave blank to detect)
-TURNSTILE_SITE_KEY=         # public site key for the SPA (optional)
-TURNSTILE_SECRET=           # secret for Worker/Lambda (optional)
-BREVO_API_KEY=              # optional; without it EMAIL_MODE=log
-EMAIL_FROM=                 # optional sender address
-
-# Final artefacts
+# Final artefact
 VIDEO_URL=                  # Google Drive / YouTube link, "anyone with the link can view"
 ```
 
-If you do not want real Turnstile/Brevo keys, that is acceptable: the app explicitly runs in
-development/log mode and the missing-token branch is already evidenced. The report must then say
-the real-key path is untested.
+Optional future upgrades: real Turnstile test keys and a Brevo API key. Without them the app
+explicitly stays in development/log mode, and the missing-token branch is already evidenced;
+the report states that the real-key paths are untested.
 
 ---
 
@@ -112,56 +98,31 @@ Tasneem's configured Git identity — they are not proof that she wrote all thre
 
 ---
 
-## 3. Public Cloudflare Workers + Neon deployment
+## 3. Public Cloudflare Workers + Neon deployment — DONE
 
 Why: the brief requires a **public URL**. Floci is an emulator and cannot be the demonstration URL.
 
-### One-time account setup
+| Component | Live public URL |
+|---|---|
+| Website (Cloudflare Workers static assets) | **https://bdo-organizer.tourmaline-headphones.workers.dev** |
+| Drive Worker | https://bdo-drive.tourmaline-headphones.workers.dev |
+| Donor Worker | https://bdo-donor.tourmaline-headphones.workers.dev |
+| Booking Worker | https://bdo-booking.tourmaline-headphones.workers.dev |
 
-1. `npx wrangler login` (Cloudflare).
-2. Create a Neon project → copy the Postgres connection string.
-3. Create a Cloudflare Turnstile widget if you want real bot protection (site key + secret).
-4. Create a Brevo API key if you want real emails; otherwise leave it empty and keep log mode.
-5. Decide the three Worker names; their URLs are the three `*_WORKER_URL` values above.
+Verified 25 Nov 2026:
 
-### Deploy
+* All three health endpoints return HTTP 200 with `Access-Control-Allow-Origin` set to the website URL.
+* The deployed `frontend/js/config.js` contains all three public Worker URLs.
+* Neon project `cloud` / branch `production` has the nine `bdo_*` tables and the rows created by the live smoke run.
+* `npm run smoke` against the public Workers: **22/22 PASS**, including booking, duplicate rejection, reminders, check-in, donation record, report and 400/401/403/404/409 errors.
+* Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`.
 
-In PowerShell (from the project root), set the variables from section 1, then:
+Important deployment notes:
 
-```powershell
-$env:DATABASE_URL='postgresql://...'
-$env:JWT_SECRET='...'
-$env:INTERNAL_KEY='...'
-$env:ORGANIZER_INVITE='...'
-$env:DRIVE_WORKER_URL='https://bdo-drive.<account>.workers.dev'
-$env:DONOR_WORKER_URL='https://bdo-donor.<account>.workers.dev'
-$env:BOOKING_WORKER_URL='https://bdo-booking.<account>.workers.dev'
-$env:FRONTEND_URL='https://bdo-organizer.pages.dev'
-# optional: TURNSTILE_SITE_KEY, TURNSTILE_SECRET, BREVO_API_KEY, EMAIL_FROM
-
-npm run deploy:cloudflare
-```
-
-The script bundles the Workers, applies `infra/db/schema.sql` to Neon, sets secrets, deploys the
-Workers, writes the public URLs into `frontend/js/config.js`, deploys Pages, sets CORS and checks
-all three health endpoints. It ends with `CLOUDFLARE DEPLOYMENT VERIFIED`. URLs are saved to
-`.data/cloudflare-urls.json` (git-ignored).
-
-### After deployment — capture evidence
-
-```bash
-curl https://<drive-worker>/api/health/drive
-curl https://<donor-worker>/api/health/donor
-curl https://<booking-worker>/api/health/booking
-```
-
-* Open the Pages URL on a laptop **and a phone**; screenshot `3/3 services online`.
-* Repeat the manual end-to-end scenario in `README.md` section 3 from the public URL.
-* Take Neon SQL-editor screenshots after register, booking, check-in and report.
-* Take Cloudflare dashboard screenshots: three Workers, Pages deployment, Cron Trigger
-  `0 6 * * *`, and one `wrangler tail` log excerpt.
-* Paste the public URL into `docs/report.md` section 6 and replace `[DEPLOYED_URL]` in
-  `docs/individual-statements.md`.
+* The Workers use a **temporary Cloudflare preview account**. Claim it with the one-time link that was supplied outside the repository, or redeploy to your own account with `wrangler deploy --temporary`/`npx wrangler login`. If the claim expires, redeploy and update the public URLs in `frontend/js/config.js` and the docs.
+* All three `wrangler.toml` files include `compatibility_flags = ["global_fetch_strictly_public"]`; without it Booking → Drive/Donor calls fail with Cloudflare error `1042`.
+* The temporary free account has **0 cron triggers**, so the declared `0 6 * * *` trigger could not be attached. The manual Reminder button and `POST /internal/reminders/daily` are verified; attach the trigger on a permanent account if required.
+* Turnstile and Brevo keys were intentionally left empty; `EMAIL_MODE=log` records messages in Neon. No secret, claim token or invite code is stored in the repository.
 
 ---
 
@@ -185,7 +146,7 @@ curl https://<booking-worker>/api/health/booking
 |---|---|---|
 | DON-16 live | Add a real Turnstile test key as a Worker secret, load the SPA, complete the widget, register once | The missing-token branch is evidenced; real widget validation is not |
 | Email live | Set `BREVO_API_KEY` and `EMAIL_FROM`, send **one** controlled reminder, capture `status:"sent"` and the provider message id | Log mode is currently the only email evidence |
-| E2E-06 | Repeat the full smoke flow with `BDO_API_URL=''`, `BDO_DRIVE_URL`, `BDO_DONOR_URL` and `BDO_BOOKING_URL` set to the public Workers, then `npm run smoke` | Public deployed integration is required |
+| E2E-06 | DONE — full smoke flow run with `BDO_API_URL=''` and the three public `BDO_*_URL` values; output in `evidence/PUBLIC-SMOKE.txt` | Public deployed integration is required |
 | Per-endpoint evidence | One `curl -i` or Postman request/response per row of `docs/api.md` | Report sections 3 and 9 |
 | Frontend screenshots | `#/organizer` (create form, slots, Bookings, Emails, Report tabs), `#/register`, `#/profile`, `#/bookings` | Individual statements, items 2 |
 | Error evidence | `400`, `401`, `403`, `404`, `409`, `429`, `502` responses | Brief explicitly asks for invalid cases |
@@ -242,6 +203,6 @@ npm run evidence:capture    # regenerate DRV-05 / DON-14 / DON-16 evidence
 npm run zip:all             # Lambda zips for Floci
 npm run workers:bundle      # Worker bundles for Cloudflare
 bash infra/deploy-all.sh    # Floci (Git Bash on Windows)
-npm run deploy:cloudflare   # public deployment (needs section 1 values)
+npm run deploy:cloudflare   # redeploy to your own Cloudflare/Neon account (optional)
 git status --short --branch # must be clean before tagging
 ```
