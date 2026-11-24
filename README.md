@@ -205,7 +205,7 @@ Each student must make real commits to their own service. The generated code is 
 
 Evidence to collect for the report:
 
-- Health-check responses and screenshots from the deployed URL.
+- Health-check responses and screenshots from the deployed URL. Local browser evidence is already in `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` (headless Chrome at `http://localhost:8090`).
 - Postman or `curl` request/response pairs for each endpoint.
 - Neon SQL editor screenshots after create/update/delete.
 - `npm test` output plus rows in [`docs/testing.md`](docs/testing.md).

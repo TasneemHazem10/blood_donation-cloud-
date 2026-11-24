@@ -105,7 +105,7 @@ bash infra/deploy-all.sh          # Git Bash; ends with ALL CHECKS PASSED
 | E2E-01 | Drive + slots → register → book → email → check-in → report | Full journey, consistent seat/donation/report | IN01 plus 22/22 local and 22/22 Floci smoke | PASS | API responses + DB rows |
 | E2E-02 | Remove JWT mid-journey before booking | `401`, no booking or seat change | 401 in IN02 and both smoke runs | PASS | response + seat count |
 | E2E-03 | Cancel drive after a booking | booking `cancelled`, seat `booked:0`, email logged | DR10/DR12 + IN01/BK06 | PASS | three service responses + rows |
-| E2E-04 | Frontend shows `3/3 services online` and live counts | Green footer, counts change after booking | Browser has not been checked in this run | PENDING | browser screenshot |
+| E2E-04 | Frontend shows `3/3 services online` and live counts | Green footer, counts change after booking | Headless Chrome rendered `3/3 services online` in green on the home and `#/drives` pages; the drives page displays a live API drive with `20 seats`. Seat-count changes after booking are covered by BOK-02 and the smoke runs | PASS | `evidence/E2E-04-home.png`, `evidence/E2E-04-drives.png`; DOM excerpt `<span id="systemStatus" style="color: var(--green);">3/3 services online</span>` |
 | E2E-05 | Reminder run for drive date | first `sent`/`dev-log`, second `skipped` | 1 sent + 1 skipped in both smoke runs | PASS | responses + reminder log |
 | E2E-06 | Repeat E2E-01 on public Cloudflare URL | Same result with Worker URLs and Neon rows | No credentials/public URL available yet | PENDING | URL in browser + responses + Neon rows |
 

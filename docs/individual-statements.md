@@ -1,6 +1,6 @@
 # Individual contribution statements
 
-These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (53/53), local + Floci smoke (22/22 each) and the captured files in `evidence/`. A local Git repository exists with an **import** commit by Tasneem (`2139745`) and three `feature/*` branches, but there is no remote, PR, `v1.0` tag or per-student commit yet; no authorship claim is made for the import commit. The public deployed URL, video, frontend browser screenshot and real API keys also remain placeholders. Replace every `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
+These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (53/53), local + Floci smoke (22/22 each) and the captured files in `evidence/`. A local Git repository exists with an **import** commit by Tasneem (`2139745`) and three `feature/*` branches, but there is no remote, PR, `v1.0` tag or per-student commit yet; no authorship claim is made for the import commit. Local browser screenshots are in `evidence/E2E-04-*.png`; the public deployed URL, video, public-URL browser screenshot and real API keys also remain placeholders. Replace every `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
 
 Shared evidence placeholders used below:
 
@@ -110,7 +110,7 @@ Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_HABIBA_RULES], [COMMIT
 3. **Floci geocode cache table.** Added `bdo_geocodes` to `infra/services/drive.sh`; the verified deployment creates nine DynamoDB tables and the cache is available. DRV-05 now has a live `?near=` capture outside `TEST_MODE=1` in `evidence/DRV-05-live-geocode.txt`.
 4. **CORS origin differs per deployment** (8090 local, 4566 Floci, Pages URL on Cloudflare). Handled with the `CORS_ORIGINS` env var; `wrangler.toml` defaults to `https://bdo-organizer.pages.dev`, and `configure-cloudflare.js` sets the detected Pages URL as a secret. Verify against the real hostname during public deployment.
 
-Evidence placeholder: `[EVIDENCE: error log screenshot before/after WAL fix; browser URL showing 8090]`.
+Evidence: `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` show the SPA running on **http://localhost:8090** with `3/3 services online`; the pre-fix WAL error log screenshot is still a placeholder.
 
 ---
 

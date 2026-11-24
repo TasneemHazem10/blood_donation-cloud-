@@ -175,7 +175,7 @@ To fill this section: create the repository, push `main`, make one real commit p
 | DRV-01–DRV-13 (Habiba) | health, create, slots, filters, live `?near=`, report, 400/401/403/404/409 errors | 13/13 PASS |
 | DON-01–DON-16 (Tasneem) | register, both roles, login, `me`, eligibility, profile, history, 400/401/403/409/429, Turnstile missing-token branch | 15/16 PASS; real Turnstile widget token PENDING |
 | BOK-01–BOK-19 (Hala) | book, list, cancel, check-in, reminders, internal routes, 400/401/403/409/502 | 19/19 PASS |
-| E2E-01–E2E-06 | full journey, auth removal, drive cancellation, browser footer, reminders, public deployment | E2E-01/02/03/05 PASS; E2E-04 (browser screenshot) and E2E-06 (public URL) PENDING |
+| E2E-01–E2E-06 | full journey, auth removal, drive cancellation, browser footer, reminders, public deployment | E2E-01/02/03/04/05 PASS (browser footer captured in `evidence/E2E-04-home.png`); E2E-06 (public URL) PENDING |
 
 Invalid cases include missing fields, unknown ids, wrong owner/role, overlapping slots, full slots, duplicate bookings, ineligible donors, malformed outcomes/dates and missing internal keys. Response bodies use the common `error.code`/`error.message` envelope.
 
@@ -190,7 +190,7 @@ Open items with reason and proposed improvement are tracked in [`docs/limitation
 | No public Cloudflare/Neon URL or cloud evidence yet (E2E-06) | Credentials and Worker URLs not supplied | Run `npm run deploy:cloudflare` with real secrets; capture health, browser, Neon and smoke evidence |
 | No repository, PRs, tag or ZIP (section 7) | Git not initialised; GitHub handles unknown | Create repo, real student commits/PRs, tag `v1.0`, zip that tag |
 | No demo video (section 8) | Depends on the public URL | Record ≤5-minute walkthrough from the deployed URL |
-| Browser-level `3/3 services online` screenshot (E2E-04) | Smoke tests exercise APIs, not the DOM | Take a screenshot from the deployed SPA after a booking |
+| Public-URL browser evidence for `3/3 services online` | The captured screenshots are from the local SPA; the deployed SPA is not available yet | Repeat the headless-browser capture against the Cloudflare Pages URL after deployment |
 | In-memory login rate limiter and in-process reminder state | Simplifies three-runtime compatibility | Add Cloudflare WAF rate limiting and a shared durable store |
 | DynamoDB/Neon `search()` uses scan/filter rather than indexes | Document-model simplicity | Add GSIs/columns and pagination |
 | Recovery window if the process crashes between reserve and insert | Compensating release cannot run after a hard crash | Make reservation idempotent with a TTL hold |

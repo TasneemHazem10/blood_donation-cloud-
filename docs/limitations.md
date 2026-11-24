@@ -31,7 +31,7 @@ This page is intentionally candid. It separates design trade-offs acceptable for
 | L20 | No pagination or indexes; DynamoDB `search()` is `Scan` + JS filter | Document-model simplicity | Slow and costly at scale | Add GSI/columns for `driveId`, `donorId`, `status`, `date`; paginate list endpoints | All |
 | L21 | Personal data (email, name, phone, blood type) is stored in plain JSON documents | Class prototype, provider-managed encryption only | Not suitable for real medical use without consent, retention and access-control design | Minimise fields, add field-level encryption and documented retention policy | Tasneem |
 | L22 | Demo video, submission code zip and repository link do not exist yet | Final phase not complete | Sections 7–8 of the report cannot be filled | Freeze code, tag `v1.0`, zip that tag, record ≤5-minute video from the public URL | Tasneem (video) + Habiba (repo/zip) |
-| L25 | Browser-level frontend evidence (`3/3 services online`, live counts) is not captured | Smoke tests call APIs, not the DOM | E2E-04 is PENDING | Take a browser screenshot from the deployed URL after the public deployment | All |
+| L25 | Browser evidence exists locally but not from the public deployed URL | Local E2E-04 was captured with headless Chrome (`evidence/E2E-04-home.png`, `evidence/E2E-04-drives.png`), showing `3/3 services online` and a live drive | Public-browser proof is still PENDING | Repeat the headless-browser capture against the Cloudflare Pages URL after deployment | All |
 
 ## 3. Resolved during the rebuild
 
