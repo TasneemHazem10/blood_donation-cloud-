@@ -4,10 +4,12 @@
 
 The workspace now contains a real local Git repository:
 
-* `main` has one import commit: `2139745c54024bc98d58454a3fe07a8da2871db7`
-  (`Initial project import: three services, SPA, infra, docs, tests and captured evidence`).
-  It was made with the machine's configured identity, **Tasneem Hazem <tasneemhazem27@gmail.com>**.
-  It is an *import* commit, not a claim that Tasneem wrote all three services.
+* `main` has two commits, both made with the machine's configured identity,
+  **Tasneem Hazem <tasneemhazem27@gmail.com>**:
+  * `2139745c54024bc98d58454a3fe07a8da2871db7` — initial project import (three services, SPA, infra, docs, tests and captured evidence).
+  * `f4e318d` — documentation reconciliation (53 tests, evidence capture, local Git state).
+
+  These are *import/documentation* commits, not a claim that Tasneem wrote all three services.
 * Three local branches exist from that commit: `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking`.
 * There is **no remote repository, no pull request, no review, no `v1.0` tag and no per-student commit yet**.
   `.github/CODEOWNERS` still contains placeholder GitHub handles.
