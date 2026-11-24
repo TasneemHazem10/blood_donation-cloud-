@@ -1,0 +1,15 @@
+Captured: 2026-11-24T22:31:02.987Z
+Secrets/tokens are redacted. Dummy values are labelled.
+
+DON-14 - login rate limit (8 attempts allowed, 9th blocked)
+POST /api/auth/login  X-Forwarded-For: 10.99.0.1  body: {"email":"rate-limit@example.org","password":"<wrong>"}
+
+attempt 1: HTTP 401 {"error":{"code":"UNAUTHORIZED","message":"Email or password is incorrect"}}
+attempt 2: HTTP 401 {"error":{"code":"UNAUTHORIZED","message":"Email or password is incorrect"}}
+attempt 3: HTTP 401 {"error":{"code":"UNAUTHORIZED","message":"Email or password is incorrect"}}
+attempt 4: HTTP 401 {"error":{"code":"UNAUTHORIZED","message":"Email or password is incorrect"}}
+attempt 5: HTTP 401 {"error":{"code":"UNAUTHORIZED","message":"Email or password is incorrect"}}
+attempt 6: HTTP 401 {"error":{"code":"UNAUTHORIZED","message":"Email or password is incorrect"}}
+attempt 7: HTTP 401 {"error":{"code":"UNAUTHORIZED","message":"Email or password is incorrect"}}
+attempt 8: HTTP 401 {"error":{"code":"UNAUTHORIZED","message":"Email or password is incorrect"}}
+attempt 9: HTTP 429 {"error":{"code":"RATE_LIMIT","message":"Too many attempts. Please wait 10 minutes and try again."}}

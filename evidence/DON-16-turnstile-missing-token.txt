@@ -1,0 +1,8 @@
+Captured: 2026-11-24T22:31:03.020Z
+Secrets/tokens are redacted. Dummy values are labelled.
+
+DON-16 - Turnstile configured but no token supplied
+Config: TEST_MODE unset, TURNSTILE_SECRET=dummy-secret-for-missing-token-branch (dummy, never sent upstream)
+POST /api/auth/register without turnstileToken (password redacted from this log)
+HTTP 401 {"error":{"code":"UNAUTHORIZED","message":"Bot check is required. Please complete the verification."}}
+bdo_users row created: NO (expected)

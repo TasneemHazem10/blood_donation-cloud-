@@ -1,0 +1,6 @@
+{
+  "name": "@bdo/frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Presentation layer for the Blood Donation Drive Organizer"
+}

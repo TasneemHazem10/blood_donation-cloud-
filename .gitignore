@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+infra/secrets.env
+infra/.state
+dist/
+*.zip
+*.log
+.DS_Store
+coverage/
+.data/

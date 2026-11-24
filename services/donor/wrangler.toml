@@ -1,0 +1,8 @@
+name = "bdo-donor"
+main = "dist/worker.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+DATA_DRIVER = "neon"
+NODE_ENV = "production"
+CORS_ORIGINS = "https://bdo-organizer.pages.dev"

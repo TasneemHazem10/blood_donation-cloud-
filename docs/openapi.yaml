@@ -1,0 +1,1730 @@
+openapi: 3.0.3
+info:
+  title: Blood Donation Drive Organizer API
+  version: 1.0.0
+  description: |
+    Machine-readable summary of the routes actually registered in
+    services/drive/routes.js, services/donor/routes.js and services/booking/routes.js.
+    Public endpoints may be called without a token. Organizer/donor endpoints need a
+    JWT from POST /api/auth/login. /internal/* endpoints need x-internal-key.
+    All placeholders are examples, not real deployed URLs or credentials.
+  contact:
+    name: BloodLink class project
+servers:
+  - url: http://localhost:3001
+    description: Local Drive service
+  - url: http://localhost:3002
+    description: Local Donor service
+  - url: http://localhost:3003
+    description: Local Booking service
+  - url: 'http://{apiId}.execute-api.localhost.floci.io:4566'
+    description: Floci API Gateway (one front door for all services)
+    variables:
+      apiId:
+        default: REPLACE_WITH_API_ID
+        description: API_ID from infra/.state
+  - url: 'https://{workerName}.workers.dev'
+    description: Cloudflare Worker placeholder (replace with real hostname)
+    variables:
+      workerName:
+        default: bdo-drive
+        description: bdo-drive, bdo-donor or bdo-booking
+tags:
+  - name: Drive
+  - name: Donor
+  - name: Booking
+  - name: Internal
+
+paths:
+  /api/health/drive:
+    get:
+      tags: [Drive]
+      summary: Drive service health
+      security: []
+      responses:
+        '200':
+          description: Service is running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /api/drives:
+    get:
+      tags: [Drive]
+      summary: List and search drives
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CityQuery'
+        - $ref: '#/components/parameters/StatusQuery'
+        - $ref: '#/components/parameters/DateFromQuery'
+        - $ref: '#/components/parameters/DateToQuery'
+        - $ref: '#/components/parameters/NearQuery'
+        - $ref: '#/components/parameters/RadiusQuery'
+      responses:
+        '200':
+          description: Matching drives with slot availability
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count, drives]
+                properties:
+                  count:
+                    type: integer
+                  drives:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DriveWithSlots'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+    post:
+      tags: [Drive]
+      summary: Create a drive (organizer only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriveInput'
+      responses:
+        '201':
+          description: Drive created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drive'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/drives/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Drive]
+      summary: Read one drive with its slots
+      security: []
+      responses:
+        '200':
+          description: Drive found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriveWithSlots'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Drive]
+      summary: Edit a scheduled drive you own
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriveInput'
+      responses:
+        '200':
+          description: Drive updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drive'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Drive]
+      summary: Delete a drive with no active bookings
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/drives/{id}/status:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    patch:
+      tags: [Drive]
+      summary: Cancel or complete a scheduled drive
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: Status changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Drive'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/drives/{id}/slots:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    post:
+      tags: [Drive]
+      summary: Add a non-overlapping time slot
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlotInput'
+      responses:
+        '201':
+          description: Slot created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/drives/{id}/slots/{slotId}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/SlotIdParam'
+    put:
+      tags: [Drive]
+      summary: Edit a slot (capacity cannot drop below booked seats)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlotInput'
+      responses:
+        '200':
+          description: Slot updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Drive]
+      summary: Delete a slot with no bookings
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/drives/{id}/report:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Drive]
+      summary: Generate and store a turnout report snapshot
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Report generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/drives/{id}/reports:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Drive]
+      summary: List stored report snapshots for a drive
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Report list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count, reports]
+                properties:
+                  count:
+                    type: integer
+                  reports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Report'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /internal/drives/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Internal]
+      summary: Drive lookup for Booking service
+      security:
+        - internalKey: []
+      responses:
+        '200':
+          description: Drive with live slot availability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriveWithSlots'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /internal/drives/{id}/slots/{slotId}/reservation:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+      - $ref: '#/components/parameters/SlotIdParam'
+    post:
+      tags: [Internal]
+      summary: Atomically reserve one seat
+      security:
+        - internalKey: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      responses:
+        '200':
+          description: Seat reserved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slot'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Internal]
+      summary: Atomically release one seat
+      security:
+        - internalKey: []
+      responses:
+        '200':
+          description: Seat released
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slot'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/health/donor:
+    get:
+      tags: [Donor]
+      summary: Donor service health
+      security: []
+      responses:
+        '200':
+          description: Service is running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+
+  /api/auth/register:
+    post:
+      tags: [Donor]
+      summary: Register a donor or organizer
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+      responses:
+        '201':
+          description: Account created with JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/auth/login:
+    post:
+      tags: [Donor]
+      summary: Log in and receive a JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/auth/me:
+    get:
+      tags: [Donor]
+      summary: Current account from JWT
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/donors/me:
+    get:
+      tags: [Donor]
+      summary: My donor profile and eligibility
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Donor profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [donor]
+                properties:
+                  donor:
+                    $ref: '#/components/schemas/DonorProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Donor]
+      summary: Update donor profile fields
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [donor]
+                properties:
+                  donor:
+                    $ref: '#/components/schemas/DonorProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Donor]
+      summary: Delete account (blocked while bookings are active)
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/donors/me/eligibility:
+    get:
+      tags: [Donor]
+      summary: Evaluate my eligibility for a date
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DateQuery'
+      responses:
+        '200':
+          description: Eligibility result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Eligibility'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/donors/me/donations:
+    get:
+      tags: [Donor]
+      summary: My donation history
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Donation list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonationList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /internal/donors/{id}/eligibility:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Internal]
+      summary: Eligibility lookup for Booking service
+      security:
+        - internalKey: []
+      parameters:
+        - $ref: '#/components/parameters/DateQuery'
+      responses:
+        '200':
+          description: Eligibility and donor summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalEligibility'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /internal/donations:
+    post:
+      tags: [Internal]
+      summary: Record a donation (idempotent by donationId)
+      security:
+        - internalKey: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DonationInput'
+      responses:
+        '201':
+          description: Donation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonationResult'
+        '200':
+          description: Donation already existed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /internal/donors/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Internal]
+      summary: Donor profile lookup for Booking service
+      security:
+        - internalKey: []
+      responses:
+        '200':
+          description: Donor found
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [donor]
+                properties:
+                  donor:
+                    $ref: '#/components/schemas/DonorProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/health/booking:
+    get:
+      tags: [Booking]
+      summary: Booking service health
+      security: []
+      responses:
+        '200':
+          description: Service is running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+
+  /api/bookings:
+    get:
+      tags: [Booking]
+      summary: Bookings for a drive (organizer owner only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/DriveIdQuery'
+      responses:
+        '200':
+          description: Booking list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+    post:
+      tags: [Booking]
+      summary: Book a slot after eligibility and seat checks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingInput'
+      responses:
+        '201':
+          description: Booking confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/bookings/mine:
+    get:
+      tags: [Booking]
+      summary: My bookings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Booking list for the token owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/bookings/{id}/cancel:
+    parameters:
+      - $ref: '#/components/parameters/BookingIdParam'
+    post:
+      tags: [Booking]
+      summary: Cancel a booking and release the seat
+      description: 'Cancel a booking and release the reserved seat. Composite booking ids use driveId__donorId.'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      responses:
+        '200':
+          description: Booking cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/bookings/{id}/check-in:
+    parameters:
+      - $ref: '#/components/parameters/BookingIdParam'
+    patch:
+      tags: [Booking]
+      summary: Check a donor in as attended or no-show
+      description: 'Record attendance or no-show. Composite booking ids use driveId__donorId.'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckInInput'
+      responses:
+        '200':
+          description: Check-in recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+
+  /api/reminders/send:
+    post:
+      tags: [Booking]
+      summary: Send reminders for a date (organizer)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReminderDateInput'
+      responses:
+        '200':
+          description: Reminder run summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/reminders:
+    get:
+      tags: [Booking]
+      summary: Organizer email log
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Reminder log
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /internal/drives/{id}/stats:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Internal]
+      summary: Booking counts for a drive
+      security:
+        - internalKey: []
+      responses:
+        '200':
+          description: Status counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /internal/drives/{id}/cancellations:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    post:
+      tags: [Internal]
+      summary: Cancel all bookings for a cancelled drive
+      security:
+        - internalKey: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              example: {}
+      responses:
+        '200':
+          description: Cancellation summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancellationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /internal/donors/{id}/active-bookings:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Internal]
+      summary: Upcoming confirmed bookings for a donor
+      security:
+        - internalKey: []
+      responses:
+        '200':
+          description: Active booking list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveBookings'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /internal/reminders/daily:
+    post:
+      tags: [Internal]
+      summary: Daily reminder hook for a scheduler
+      security:
+        - internalKey: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReminderDateInput'
+      responses:
+        '200':
+          description: Reminder run summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReminderResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: HS256 token issued by POST /api/auth/login or /api/auth/register.
+    internalKey:
+      type: apiKey
+      in: header
+      name: x-internal-key
+      description: Shared secret for server-to-server calls; never sent by the browser.
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      description: 'Generic id: drive id, user/donor email or booking id. The current validator pattern excludes ":".'
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_.@+\-]{1,200}$'
+    SlotIdParam:
+      name: slotId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_.@+\-]{1,200}$'
+    BookingIdParam:
+      name: id
+      in: path
+      required: true
+      description: 'Booking id has the form driveId__donorId.'
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_.@+\-]{1,200}$'
+    CityQuery:
+      name: city
+      in: query
+      required: false
+      schema:
+        type: string
+    StatusQuery:
+      name: status
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [scheduled, cancelled, completed]
+    DateFromQuery:
+      name: dateFrom
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+    DateToQuery:
+      name: dateTo
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+    DateQuery:
+      name: date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+    NearQuery:
+      name: near
+      in: query
+      required: false
+      description: Place name geocoded through OpenStreetMap Nominatim.
+      schema:
+        type: string
+    RadiusQuery:
+      name: radius
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 25
+    DriveIdQuery:
+      name: driveId
+      in: query
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_.@+\-]{1,200}$'
+
+  responses:
+    NoContent:
+      description: Deleted; empty body.
+    BadRequest:
+      description: Validation error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing/invalid JWT, wrong internal key or failed bot check.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Wrong role or wrong owner.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Record or endpoint not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Duplicate, full slot or illegal state transition.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: 'Too many login/register attempts (8 per 10 minutes).'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadGateway:
+      description: Upstream service unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, CONFLICT, RATE_LIMIT, UPSTREAM_ERROR, SERVICE_UNAVAILABLE, INTERNAL_ERROR]
+            message:
+              type: string
+    Health:
+      type: object
+      required: [status, service, time]
+      properties:
+        status:
+          type: string
+          example: ok
+        service:
+          type: string
+          enum: [drive, donor, booking]
+        time:
+          type: string
+          format: date-time
+    DriveInput:
+      type: object
+      required: [title, venue, city, date]
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 120
+        venue:
+          type: string
+          minLength: 3
+          maxLength: 160
+        city:
+          type: string
+          minLength: 2
+          maxLength: 80
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+          maxLength: 1000
+    Drive:
+      type: object
+      required: [id, title, venue, city, date, status, organizerId]
+      properties:
+        id:
+          type: string
+          example: drv_2f8c1a1e-6d55-4df0-9a06-1a3a6f0f9f11
+        title:
+          type: string
+        venue:
+          type: string
+        city:
+          type: string
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+        organizerId:
+          type: string
+          description: Email id of the organizer account.
+        organizerName:
+          type: string
+        status:
+          type: string
+          enum: [scheduled, cancelled, completed]
+        lat:
+          type: number
+          nullable: true
+        lon:
+          type: number
+          nullable: true
+        locationLabel:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        statusChangedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    SlotInput:
+      type: object
+      required: [startTime, endTime, capacity]
+      properties:
+        startTime:
+          type: string
+          pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+          example: '09:00'
+        endTime:
+          type: string
+          pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+          example: '11:00'
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 200
+    Slot:
+      type: object
+      required: [id, driveId, startTime, endTime, capacity, booked]
+      properties:
+        id:
+          type: string
+          example: slt_7a3b9d1c-1e52-4c11-8f0a-3b7c0d9e5a44
+        driveId:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        capacity:
+          type: integer
+        booked:
+          type: integer
+        available:
+          type: integer
+          description: max(0, capacity - booked), computed on read.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    DriveWithSlots:
+      allOf:
+        - $ref: '#/components/schemas/Drive'
+        - type: object
+          required: [slots]
+          properties:
+            slots:
+              type: array
+              items:
+                $ref: '#/components/schemas/Slot'
+            distanceKm:
+              type: number
+              description: Present only for ?near= searches.
+    StatusInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [scheduled, cancelled, completed]
+    Report:
+      type: object
+      required: [id, driveId, capacity, booked, generatedAt]
+      properties:
+        id:
+          type: string
+          example: rpt_9c0d2e11-4b7a-4f22-9c31-0d5e6f7a8b90
+        driveId:
+          type: string
+        driveTitle:
+          type: string
+        date:
+          type: string
+          format: date
+        slots:
+          type: integer
+        capacity:
+          type: integer
+        booked:
+          type: integer
+        attended:
+          type: integer
+        noShow:
+          type: integer
+        cancelled:
+          type: integer
+        fillRate:
+          type: number
+        turnoutRate:
+          type: number
+        noShowRate:
+          type: number
+        generatedAt:
+          type: string
+          format: date-time
+        storage:
+          type: string
+          enum: [database, s3]
+        location:
+          type: string
+    User:
+      type: object
+      required: [id, email, name, role]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [donor, organizer]
+        createdAt:
+          type: string
+          format: date-time
+    RegisterInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 80
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+        role:
+          type: string
+          enum: [donor, organizer]
+          default: donor
+        inviteCode:
+          type: string
+          description: Required when role is organizer.
+        bloodType:
+          type: string
+          enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+        weightKg:
+          type: number
+          minimum: 30
+          maximum: 300
+        birthYear:
+          type: integer
+          minimum: 1900
+        phone:
+          type: string
+          maxLength: 30
+        turnstileToken:
+          type: string
+          description: Required when a Turnstile secret is configured.
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        turnstileToken:
+          type: string
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          description: HS256 JWT, 7-day expiry.
+        user:
+          $ref: '#/components/schemas/User'
+    ProfileInput:
+      type: object
+      properties:
+        bloodType:
+          type: string
+          enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+        weightKg:
+          type: number
+          minimum: 30
+          maximum: 300
+        birthYear:
+          type: integer
+          minimum: 1900
+        phone:
+          type: string
+          maxLength: 30
+    DonorProfile:
+      type: object
+      required: [id, userId, email]
+      properties:
+        id:
+          type: string
+          format: email
+        userId:
+          type: string
+          format: email
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        bloodType:
+          type: string
+        weightKg:
+          type: number
+        birthYear:
+          type: integer
+        phone:
+          type: string
+        lastDonationDate:
+          type: string
+          format: date
+          nullable: true
+        deferredUntil:
+          type: string
+          format: date
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        eligibility:
+          $ref: '#/components/schemas/Eligibility'
+        updatedAt:
+          type: string
+          format: date-time
+    Eligibility:
+      type: object
+      required: [eligible, reason, evaluatedOn]
+      properties:
+        eligible:
+          type: boolean
+        reason:
+          type: string
+        nextEligibleDate:
+          type: string
+          format: date
+          nullable: true
+        evaluatedOn:
+          type: string
+          format: date
+        age:
+          type: integer
+          nullable: true
+        weightKg:
+          type: number
+          nullable: true
+        lastDonationDate:
+          type: string
+          format: date
+          nullable: true
+        intervalDays:
+          type: integer
+          example: 56
+    InternalEligibility:
+      allOf:
+        - $ref: '#/components/schemas/Eligibility'
+        - type: object
+          properties:
+            donor:
+              type: object
+              nullable: true
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                email:
+                  type: string
+                bloodType:
+                  type: string
+                  nullable: true
+    DonationInput:
+      type: object
+      required: [donorId, driveId, date]
+      properties:
+        donationId:
+          type: string
+          description: Optional idempotency key; check-in passes the booking id.
+        donorId:
+          type: string
+        driveId:
+          type: string
+        date:
+          type: string
+          format: date
+    Donation:
+      type: object
+      required: [id, donorId, driveId, date]
+      properties:
+        id:
+          type: string
+        donorId:
+          type: string
+        driveId:
+          type: string
+        date:
+          type: string
+          format: date
+        recordedAt:
+          type: string
+          format: date-time
+    DonationResult:
+      type: object
+      required: [donation, duplicate]
+      properties:
+        donation:
+          $ref: '#/components/schemas/Donation'
+        duplicate:
+          type: boolean
+    DonationList:
+      type: object
+      required: [count, donations]
+      properties:
+        count:
+          type: integer
+        donations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Donation'
+    BookingInput:
+      type: object
+      required: [driveId, slotId]
+      properties:
+        driveId:
+          type: string
+          pattern: '^[A-Za-z0-9_.@+\-]{1,160}$'
+        slotId:
+          type: string
+          pattern: '^[A-Za-z0-9_.@+\-]{1,160}$'
+    Booking:
+      type: object
+      required: [id, driveId, slotId, donorId, status]
+      properties:
+        id:
+          type: string
+          description: 'Composite key driveId__donorId.'
+          example: 'drv_123__donor@example.org'
+        driveId:
+          type: string
+        slotId:
+          type: string
+        donorId:
+          type: string
+        organizerId:
+          type: string
+        driveTitle:
+          type: string
+        driveDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+        endTime:
+          type: string
+        venue:
+          type: string
+        donorName:
+          type: string
+        donorEmail:
+          type: string
+          format: email
+        bloodType:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [confirmed, cancelled, attended, no_show]
+        createdAt:
+          type: string
+          format: date-time
+        cancelledAt:
+          type: string
+          format: date-time
+        cancellationReason:
+          type: string
+        checkedInAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    BookingCreated:
+      type: object
+      required: [booking, message]
+      properties:
+        booking:
+          $ref: '#/components/schemas/Booking'
+        message:
+          type: string
+          example: Seat reserved. Confirmation email recorded.
+    BookingResult:
+      type: object
+      required: [booking, message]
+      properties:
+        booking:
+          $ref: '#/components/schemas/Booking'
+        message:
+          type: string
+    BookingList:
+      type: object
+      required: [count, bookings]
+      properties:
+        count:
+          type: integer
+        bookings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'
+    CheckInInput:
+      type: object
+      required: [outcome]
+      properties:
+        outcome:
+          type: string
+          enum: [attended, no_show]
+    ReminderDateInput:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Defaults to tomorrow.
+    Reminder:
+      type: object
+      required: [id, bookingId, type, to, status]
+      properties:
+        id:
+          type: string
+        bookingId:
+          type: string
+        donorId:
+          type: string
+        driveId:
+          type: string
+        organizerId:
+          type: string
+        type:
+          type: string
+          enum: [confirmation, cancellation, reminder]
+        to:
+          type: string
+          format: email
+        subject:
+          type: string
+        scheduledFor:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, sent, dev-log, failed]
+        provider:
+          type: string
+        messageId:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        error:
+          type: string
+    ReminderList:
+      type: object
+      required: [count, reminders]
+      properties:
+        count:
+          type: integer
+        reminders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reminder'
+    ReminderResult:
+      type: object
+      required: [date, eligible, sent, skipped, failed, emailMode]
+      properties:
+        date:
+          type: string
+          format: date
+        eligible:
+          type: integer
+        sent:
+          type: integer
+        skipped:
+          type: integer
+        failed:
+          type: integer
+        emailMode:
+          type: string
+          example: log
+    Stats:
+      type: object
+      required: [booked, attended, noShow, cancelled, total]
+      properties:
+        booked:
+          type: integer
+          description: Count of confirmed bookings.
+        attended:
+          type: integer
+        noShow:
+          type: integer
+        cancelled:
+          type: integer
+        total:
+          type: integer
+    CancellationResult:
+      type: object
+      required: [driveId, cancelled, released]
+      properties:
+        driveId:
+          type: string
+        cancelled:
+          type: integer
+        released:
+          type: integer
+    ActiveBookings:
+      type: object
+      required: [count, bookings]
+      properties:
+        count:
+          type: integer
+        bookings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'

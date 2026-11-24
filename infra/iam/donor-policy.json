@@ -1,0 +1,24 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan", "dynamodb:Query", "dynamodb:DescribeTable"],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:000000000000:table/bdo_users",
+        "arn:aws:dynamodb:us-east-1:000000000000:table/bdo_donors",
+        "arn:aws:dynamodb:us-east-1:000000000000:table/bdo_donations"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["lambda:InvokeFunction"],
+      "Resource": "arn:aws:lambda:us-east-1:000000000000:function:bdo-booking-service"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:us-east-1:000000000000:*"
+    }
+  ]
+}

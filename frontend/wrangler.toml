@@ -1,0 +1,6 @@
+name = "bdo-organizer"
+compatibility_date = "2026-01-01"
+
+# Public Cloudflare Pages/Workers static site. js/config.js is rewritten by
+# infra/scripts/configure-cloudflare.js with the three Worker URLs before deploy.
+assets = { directory = "./", html_handling = "auto-trailing-slash", not_found_handling = "single-page-application" }

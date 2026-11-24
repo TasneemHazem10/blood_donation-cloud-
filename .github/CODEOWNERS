@@ -1,0 +1,25 @@
+# Replace the placeholder handles with the students' real GitHub usernames
+# before inviting collaborators / enabling branch protection.
+#
+# Habiba - Drive Management
+/services/drive/    @REPLACE_WITH_HABIBA_GITHUB
+/docs/architecture.md @REPLACE_WITH_HABIBA_GITHUB
+/docs/deployment.md @REPLACE_WITH_HABIBA_GITHUB
+/docs/limitations.md @REPLACE_WITH_HABIBA_GITHUB
+
+# Tasneem - Donor and Eligibility
+/services/donor/    @REPLACE_WITH_TASNEEM_GITHUB
+/docs/methodology.md @REPLACE_WITH_TASNEEM_GITHUB
+/docs/testing.md    @REPLACE_WITH_TASNEEM_GITHUB
+
+# Hala - Booking and Reminder
+/services/booking/  @REPLACE_WITH_HALA_GITHUB
+/docs/api.md        @REPLACE_WITH_HALA_GITHUB
+/docs/data-model.md @REPLACE_WITH_HALA_GITHUB
+/docs/individual-statements.md @REPLACE_WITH_HALA_GITHUB
+
+# Shared areas require review from all three owners.
+/frontend/          @REPLACE_WITH_HABIBA_GITHUB @REPLACE_WITH_TASNEEM_GITHUB @REPLACE_WITH_HALA_GITHUB
+/shared/            @REPLACE_WITH_HABIBA_GITHUB @REPLACE_WITH_TASNEEM_GITHUB @REPLACE_WITH_HALA_GITHUB
+/infra/             @REPLACE_WITH_HABIBA_GITHUB @REPLACE_WITH_TASNEEM_GITHUB @REPLACE_WITH_HALA_GITHUB
+/tests/             @REPLACE_WITH_HABIBA_GITHUB @REPLACE_WITH_TASNEEM_GITHUB @REPLACE_WITH_HALA_GITHUB

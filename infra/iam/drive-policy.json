@@ -1,0 +1,30 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem", "dynamodb:Scan", "dynamodb:Query", "dynamodb:DescribeTable"],
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:000000000000:table/bdo_drives",
+        "arn:aws:dynamodb:us-east-1:000000000000:table/bdo_slots",
+        "arn:aws:dynamodb:us-east-1:000000000000:table/bdo_reports",
+        "arn:aws:dynamodb:us-east-1:000000000000:table/bdo_geocodes"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::bdo-drive-reports", "arn:aws:s3:::bdo-drive-reports/*"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["lambda:InvokeFunction"],
+      "Resource": "arn:aws:lambda:us-east-1:000000000000:function:bdo-booking-service"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:us-east-1:000000000000:*"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+Captured: 2026-11-24T22:31:04.751Z
+Secrets/tokens are redacted. Dummy values are labelled.
+
+DRV-05 - live Nominatim geocode and ?near= radius search
+External service: https://nominatim.openstreetmap.org/search (User-Agent: BDO-Cloud-Project/1.0)
+
+POST /api/drives -> HTTP 201
+created drive: {"id":"drv_607ffcd7-9f51-4cf6-80e2-896bfcc092c3","lat":29.3796532,"lon":47.9734174,"locationLabel":"Kuwait City, Qibla, Capital Governorate, 15005, Kuwait"}
+
+GET /api/drives?near=Kuwait%20City&radius=25 -> HTTP 200
+{
+  "count": 1,
+  "drives": [
+    {
+      "id": "drv_607ffcd7-9f51-4cf6-80e2-896bfcc092c3",
+      "title": "Live Geocode Drive",
+      "venue": "Kuwait City",
+      "city": "Kuwait",
+      "date": "2026-12-04",
+      "description": "Evidence run with real geocoding",
+      "organizerId": "org@example.org",
+      "organizerName": "Evidence Organizer",
+      "status": "scheduled",
+      "lat": 29.3796532,
+      "lon": 47.9734174,
+      "locationLabel": "Kuwait City, Qibla, Capital Governorate, 15005, Kuwait",
+      "createdAt": "2026-11-24T22:31:03.472Z",
+      "distanceKm": 0,
+      "slots": []
+    }
+  ]
+}
+
+Cached geocode rows in SQLite bdo_geocodes:
+[
+  {
+    "id": "kuwait_city_kuwait",
+    "lat": 29.3796532,
+    "lon": 47.9734174,
+    "label": "Kuwait City, Qibla, Capital Governorate, 15005, Kuwait",
+    "source": "nominatim",
+    "fetchedAt": "2026-11-24T22:31:03.472Z"
+  },
+  {
+    "id": "kuwait_city",
+    "lat": 29.3796532,
+    "lon": 47.9734174,
+    "label": "Kuwait City, Qibla, Capital Governorate, 15005, Kuwait",
+    "source": "nominatim",
+    "fetchedAt": "2026-11-24T22:31:04.746Z"
+  }
+]

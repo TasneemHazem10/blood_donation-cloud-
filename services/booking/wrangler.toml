@@ -1,0 +1,12 @@
+name = "bdo-booking"
+main = "dist/worker.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+DATA_DRIVER = "neon"
+NODE_ENV = "production"
+EMAIL_MODE = "log"
+CORS_ORIGINS = "https://bdo-organizer.pages.dev"
+
+[triggers]
+crons = ["0 6 * * *"]
