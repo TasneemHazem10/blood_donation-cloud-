@@ -150,7 +150,7 @@ Every credential is read from an environment variable by `shared/config.js`; no 
 
 ## 7. GitHub repository
 
-**PARTIAL.** A local Git repository now exists: `main` contains three commits by Tasneem's configured identity: import `2139745` and two documentation updates (`f4e318d`, `a2d2660`) (*not* a claim that she wrote every service), and the branches `feature/s1-drive`, `feature/s2-donor` and `feature/s3-booking` exist. There is still **no remote repository, pull request, review, `v1.0` tag or per-student commit**, so no GitHub link can be claimed yet. The intended structure is:
+**PARTIAL.** A local Git repository now exists: `main` contains an import commit `2139745` plus several documentation/evidence commits by Tasneem's configured identity (*not* a claim that she wrote every service), and the branches `feature/s1-drive`, `feature/s2-donor` and `feature/s3-booking` exist. There is still **no remote repository, pull request, review, `v1.0` tag or per-student commit**, so no GitHub link can be claimed yet. The intended structure is:
 
 * `main` — protected, deployable state; `feature/s1-*`, `feature/s2-*`, `feature/s3-*` — one branch per student; pull requests reviewed by another student; `v1.0` tag used for the submitted ZIP.
 * `.github/CODEOWNERS` maps `services/drive/` to Habiba, `services/donor/` to Tasneem, `services/booking/` to Hala and shared folders to all three. The real GitHub handles must replace the placeholders before submission.
