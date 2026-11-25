@@ -1,12 +1,12 @@
 FINAL RELEASE EVIDENCE
-capturedAt: 2026-11-25T18:33:38.4312002Z
+capturedAt: 2026-11-25T19:08:20.383Z
 
 The annotated `v1.0` tag and `bdo-organizer-v1.0.zip` were regenerated from the final
-lab-alignment/public-URL commit. The remote tag was verified with `git ls-remote --tags origin v1.0`.
+stale-render-fix release commit. The remote tag was verified with `git ls-remote --tags origin v1.0`.
 
 Source archive: bdo-organizer-v1.0.zip
 - generated with `git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0`
-- 185 entries
+- 188 entries
 - disallowed entries (.data/, dist/, node_modules/, .env, .dev.vars, secrets.env, .git/): 0
 - `infra/secrets.env.example` is included intentionally: it contains placeholders only.
 
@@ -18,3 +18,7 @@ Final verification from the tagged source:
 - k6: 600 checks passed, p(95)=4.34ms, failed rate 0.00% (evidence/LAB-08-K6.txt)
 - public Cloudflare Workers + Neon smoke: 22/22 PASS (evidence/PUBLIC-SMOKE.txt)
 - public browser: final permanent URL screenshots (evidence/PUBLIC-E2E-CAPTURE.txt)
+- browser stale-render regression: PASS against the public URL (evidence/BROWSER-RENDER-REGRESSION.txt)
+
+The zip was regenerated after the tag update. The demo video, real per-student PR/review evidence,
+and the instructor Cloudflare/Neon approval screenshot remain pending and are not fabricated here.
