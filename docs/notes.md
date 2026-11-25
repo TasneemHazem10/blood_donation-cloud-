@@ -77,7 +77,7 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 * **Problem:** the SPA needs the API base URLs at load time; secrets cannot be in the browser.
 * **Fix:** `frontend/js/api.js` reads `window.BDO.services` from `frontend/js/config.js`. `infra/frontend.sh` rewrites it for Floci and uploads it to `s3://bdo-web/js/config.js`. `infra/scripts/configure-cloudflare.js` generates the same file for Cloudflare from env vars via `npm run deploy:cloudflare`; no secrets are written to the browser config.
-* **Status:** Floci verified (`http://localhost:4566/bdo-web/index.html` → 200); Cloudflare verified at `https://bdo-organizer.separate-scowl.workers.dev/js/config.js`, which contains the three public Worker URLs (see `evidence/PUBLIC-DEPLOYMENT.txt`).
+* **Status:** Floci verified (`http://localhost:4566/bdo-web/index.html` → 200); Cloudflare verified at `https://bdo-organizer.sumptuous-william.workers.dev/js/config.js`, which contains the three public Worker URLs (see `evidence/PUBLIC-DEPLOYMENT.txt`).
 
 ### Entry 12 — Reminder scheduling differs per deployment
 

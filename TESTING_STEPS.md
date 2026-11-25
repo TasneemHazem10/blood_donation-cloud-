@@ -226,27 +226,27 @@ npm run smoke                                         # expect 22/22 PASS
 The public deployment is already live (see `FINALIZATION_README.md` section 3):
 
 ```text
-Website: https://bdo-organizer.separate-scowl.workers.dev
-Drive:   https://bdo-drive.separate-scowl.workers.dev
-Donor:   https://bdo-donor.separate-scowl.workers.dev
-Booking: https://bdo-booking.separate-scowl.workers.dev
+Website: https://bdo-organizer.sumptuous-william.workers.dev
+Drive:   https://bdo-drive.sumptuous-william.workers.dev
+Donor:   https://bdo-donor.sumptuous-william.workers.dev
+Booking: https://bdo-booking.sumptuous-william.workers.dev
 ```
 
 ```powershell
-curl.exe -i https://bdo-drive.separate-scowl.workers.dev/api/health/drive
-curl.exe -i https://bdo-donor.separate-scowl.workers.dev/api/health/donor
-curl.exe -i https://bdo-booking.separate-scowl.workers.dev/api/health/booking
+curl.exe -i https://bdo-drive.sumptuous-william.workers.dev/api/health/drive
+curl.exe -i https://bdo-donor.sumptuous-william.workers.dev/api/health/donor
+curl.exe -i https://bdo-booking.sumptuous-william.workers.dev/api/health/booking
 ```
 
-Expected: HTTP 200 for all three, with `Access-Control-Allow-Origin: https://bdo-organizer.separate-scowl.workers.dev`.
+Expected: HTTP 200 for all three, with `Access-Control-Allow-Origin: https://bdo-organizer.sumptuous-william.workers.dev`.
 
 Run the whole automated public journey (already captured in `evidence/PUBLIC-SMOKE.txt`):
 
 ```powershell
 $env:BDO_API_URL=''
-$env:BDO_DRIVE_URL='https://bdo-drive.separate-scowl.workers.dev'
-$env:BDO_DONOR_URL='https://bdo-donor.separate-scowl.workers.dev'
-$env:BDO_BOOKING_URL='https://bdo-booking.separate-scowl.workers.dev'
+$env:BDO_DRIVE_URL='https://bdo-drive.sumptuous-william.workers.dev'
+$env:BDO_DONOR_URL='https://bdo-donor.sumptuous-william.workers.dev'
+$env:BDO_BOOKING_URL='https://bdo-booking.sumptuous-william.workers.dev'
 $env:ORGANIZER_INVITE='blood2026'
 npm run smoke
 ```

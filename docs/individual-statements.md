@@ -7,7 +7,7 @@ Shared evidence placeholders used below:
 * `[REPO_URL]` — **https://github.com/TasneemHazem10/blood_donation-cloud-.git** (`main`, the three feature branches, `v1.0` and the source ZIP are pushed/created; PRs and real per-student commits still pending).
 * `[PR_LINK_*]`, `[COMMIT_HASH_*]` — real PR/commit links per contribution.
 * `[EVIDENCE: ...]` — screenshot, copied request/response, SQL row image or log excerpt.
-* `[DEPLOYED_URL]` — **https://bdo-organizer.separate-scowl.workers.dev** (public Cloudflare URL, not localhost).
+* `[DEPLOYED_URL]` — **https://bdo-organizer.sumptuous-william.workers.dev** (public Cloudflare URL, not localhost).
 
 ---
 
@@ -108,7 +108,7 @@ Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_HABIBA_RULES], [COMMIT
 1. **SQLite "database is locked" while three local services initialised the same file.** Fixed by enabling WAL, a 5-second busy timeout and `synchronous=NORMAL` in `shared/store/sqlite.js` (see `docs/notes.md`).
 2. **Port 8080 was already taken on the development machine.** Moved the website to **http://localhost:8090** in `infra/scripts/dev-all.js` and updated `CORS_ORIGINS`; the three APIs stayed on 3001/3002/3003. The seed script's final message was also corrected to 8090.
 3. **Floci geocode cache table.** Added `bdo_geocodes` to `infra/services/drive.sh`; the verified deployment creates nine DynamoDB tables and the cache is available. DRV-05 now has a live `?near=` capture outside `TEST_MODE=1` in `evidence/DRV-05-live-geocode.txt`.
-4. **CORS origin differs per deployment** (8090 local, 4566 Floci, Workers static-asset URL on Cloudflare). Handled with the `CORS_ORIGINS` env var; on the public deployment it is set to `https://bdo-organizer.separate-scowl.workers.dev` and verified by the `Access-Control-Allow-Origin` health-check header in `evidence/PUBLIC-DEPLOYMENT.txt`.
+4. **CORS origin differs per deployment** (8090 local, 4566 Floci, Workers static-asset URL on Cloudflare). Handled with the `CORS_ORIGINS` env var; on the public deployment it is set to `https://bdo-organizer.sumptuous-william.workers.dev` and verified by the `Access-Control-Allow-Origin` health-check header in `evidence/PUBLIC-DEPLOYMENT.txt`.
 
 Evidence: `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` show the SPA running on **http://localhost:8090** with `3/3 services online`; the pre-fix WAL error log screenshot is still a placeholder.
 
