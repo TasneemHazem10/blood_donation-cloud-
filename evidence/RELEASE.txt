@@ -1,0 +1,20 @@
+FINAL RELEASE EVIDENCE
+capturedAt: 2026-11-25T18:33:38.4312002Z
+
+The annotated `v1.0` tag and `bdo-organizer-v1.0.zip` were regenerated from the final
+lab-alignment/public-URL commit. The remote tag was verified with `git ls-remote --tags origin v1.0`.
+
+Source archive: bdo-organizer-v1.0.zip
+- generated with `git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0`
+- 185 entries
+- disallowed entries (.data/, dist/, node_modules/, .env, .dev.vars, secrets.env, .git/): 0
+- `infra/secrets.env.example` is included intentionally: it contains placeholders only.
+
+Final verification from the tagged source:
+- npm test: 59 tests, 59 pass, 0 fail (evidence/NPM-TEST.txt)
+- local smoke: 22/22 PASS (evidence/LOCAL-SMOKE.txt)
+- Floci/Lab 7 checks: 13 passed, 0 failed (evidence/LAB-07-CHECK.txt)
+- Lab 8 checks: 22 passed, 0 failed (evidence/LAB-08-CHECK.txt)
+- k6: 600 checks passed, p(95)=4.34ms, failed rate 0.00% (evidence/LAB-08-K6.txt)
+- public Cloudflare Workers + Neon smoke: 22/22 PASS (evidence/PUBLIC-SMOKE.txt)
+- public browser: final permanent URL screenshots (evidence/PUBLIC-E2E-CAPTURE.txt)
