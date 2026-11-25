@@ -16,9 +16,9 @@ below is claimed as done until you perform it.
 | Three services + SPA + shared modules + infra | ✅ pushed on `main` (see `git log -1`) |
 | Branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` | ✅ pushed (currently identical to `main`) |
 | `npm test` | ✅ 53 tests, 53 pass, 0 fail |
-| Local smoke / Floci smoke | ✅ 22/22 each; Floci `ALL CHECKS PASSED` (`evidence/FLOCI-SMOKE.txt`) |
+| Local smoke / Floci smoke | ✅ 22/22 each; repo-owned Docker Compose Floci `ALL CHECKS PASSED` (`evidence/FLOCI-DOCKER.txt`, `evidence/FLOCI-SMOKE.txt`) |
 | Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.polarized-tarsal.workers.dev`; public smoke 22/22 |
-| Evidence files | ✅ `evidence/DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png` |
+| Evidence files | ✅ `evidence/DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `FLOCI-DOCKER.txt`, `FLOCI-SMOKE.txt`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png` |
 | Report draft | ✅ `docs/report.md` sections 1–10 + appendix |
 | Three 9-item statements | ✅ `docs/individual-statements.md` |
 

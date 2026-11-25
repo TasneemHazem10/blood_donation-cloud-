@@ -14,14 +14,15 @@ All URLs, account ids and credentials below are **placeholders**. Never commit a
 | Wrangler 4 (`devDependency`) | Workers/Pages deployment and secrets | `npx wrangler --version` |
 | Neon account + psql or SQL editor | public Postgres schema | `psql --version` (optional) |
 
-> Repository status: there is **no `.git` directory yet** in the workspace, so the GitHub repository, branches, PRs, tag `v1.0` and commit history are still a checklist item. Capture them before writing the report's section 7.
+> Repository status: the Git repository exists and `main` is pushed. Authentic per-student commits/PRs, the `v1.0` tag and the demo video remain tracked in [`FINALIZATION_README.md`](../FINALIZATION_README.md).
 
 ## Verified results (25 Nov 2026)
 
 * Local website: `http://localhost:8090`; APIs: `3001` drive, `3002` donor, `3003` booking. The seed's final message now prints `http://localhost:8090` (the 8080 conflict was resolved by using 8090).
 * `npm test`: **53 tests, 53 pass, 0 fail**, across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`.
 * Local smoke `scripts/smoke.mjs`: **22 PASS** (register/login, drive and slot, eligibility, booking `201`, duplicate `409`, reminders 1 sent + 1 skipped, check-in `attended`, donation recorded, report `{booked:1,attended:1,turnout:100,storage:"database"}`, and 401/403/404/400/409 cases). It creates fresh accounts each run and supports `BDO_API_URL` for Floci.
-* `bash infra/deploy-all.sh` now completes: **ALL CHECKS PASSED** — drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200. API Gateway: `http://4f503503dd.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets.
+* The repo-owned Docker Compose stack starts `bdo-floci` (`floci/floci:latest-compat`, hybrid storage, port `4566`, persistent `floci-data` volume); container health, image, mounts and gateway URL are recorded in `evidence/FLOCI-DOCKER.txt`.
+* `bash infra/deploy-all.sh` now completes: **ALL CHECKS PASSED** — drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200. API Gateway: `http://079d67cedb.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets.
 * Floci smoke through the API Gateway: **22 PASS**, report `storage:"s3"` (`evidence/FLOCI-SMOKE.txt`).
 * Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in work.
 * Public Cloudflare/Neon deployment is **live**: `https://bdo-organizer.polarized-tarsal.workers.dev`; public smoke **22 PASS**, health/CORS/config/Neon evidence in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots in `evidence/PUBLIC-E2E-*.png`. Only the demo video still needs to be recorded.
@@ -74,10 +75,13 @@ Stop everything with `Ctrl+C` in the `npm run dev` terminal (the script kills it
 
 ```bash
 docker compose -f infra/floci/docker-compose.yml up -d
-curl -fsS http://localhost:4566/_floci/health
+curl.exe -fsS http://localhost:4566/_floci/health
+docker compose -f infra/floci/docker-compose.yml ps
 ```
 
-The compose file maps port `4566`, region `us-east-1`, dummy credentials `test/test`, and a persistent `floci-data` volume. `infra/config.sh` exports the same dummy AWS credentials and defines `aws_f()` = `aws --endpoint-url http://localhost:4566`.
+The compose file starts `bdo-floci` from `floci/floci:latest-compat`, maps port `4566`, sets region `us-east-1`, dummy credentials `test/test` and `FLOCI_STORAGE_MODE=hybrid`, mounts the Docker socket for Lambda containers, and persists state in the `floci-data` volume at `/app/data`. `infra/config.sh` exports the same dummy AWS credentials from the host and defines `aws_f()` = `aws --endpoint-url http://localhost:4566`.
+
+If the Floci container is recreated (or another lab container previously held port `4566`), stop the old container without deleting the volume, then delete the git-ignored `infra/.state` before `bash infra/deploy-all.sh` so every integration is created against the new API. The successful Docker start and deployment are captured in `evidence/FLOCI-DOCKER.txt`.
 
 ### 2.2 One-command deployment
 

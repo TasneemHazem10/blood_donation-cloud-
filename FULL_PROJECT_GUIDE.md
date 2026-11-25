@@ -200,7 +200,7 @@ bash infra/deploy-all.sh
 bash infra/check.sh
 ```
 
-This creates one API Gateway, three Lambdas, all nine DynamoDB tables, an S3 website `bdo-web`, an S3 report bucket, three IAM roles, three CloudWatch log groups and an EventBridge reminder rule. `infra/.state` records `API_ID`/`API_URL`; `infra/secrets.env` is generated with random JWT/internal/invite values and must never be committed. The verified API Gateway is `http://4f503503dd.execute-api.localhost.floci.io:4566`; `bash infra/check.sh` ends with **ALL CHECKS PASSED** (drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200).
+This creates one API Gateway, three Lambdas, all nine DynamoDB tables, an S3 website `bdo-web`, an S3 report bucket, three IAM roles, three CloudWatch log groups and an EventBridge reminder rule. `infra/.state` records `API_ID`/`API_URL`; `infra/secrets.env` is generated with random JWT/internal/invite values and must never be committed. The verified API Gateway is `http://079d67cedb.execute-api.localhost.floci.io:4566`; `bash infra/check.sh` ends with **ALL CHECKS PASSED** (drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200). Container/image/volume evidence is in `evidence/FLOCI-DOCKER.txt`.
 
 Website: `<FLOCI_URL>/bdo-web/index.html` (normally `http://localhost:4566/bdo-web/index.html`).
 
@@ -264,7 +264,7 @@ Video guidance (≤5 minutes): show the public URL first, run steps 1–9 quickl
 | 3. Service/API list, ER diagram, CRUD | `docs/api.md` (all 39 routes), `docs/data-model.md` (ER + CRUD), `docs/openapi.yaml` |
 | 4. Methodology / technical solution | This guide sections 2–4; file structure; shared runtime table |
 | 5. External integration | `shared/external/*.js`; `docs/architecture.md` section 6; Turnstile widget in `auth.js`; `EMAIL_DEV_LOG` vs Resend response. Live Nominatim evidence is in `evidence/DRV-05-live-geocode.txt`; live Resend evidence in `evidence/RESEND-LIVE-EMAIL.txt`; `TEST_MODE` is used only in tests/smoke |
-| 6. Deployment approach | `docs/deployment.md`; verified Floci `ALL CHECKS PASSED` at `http://4f503503dd.execute-api.localhost.floci.io:4566`; public Cloudflare + Neon URLs, health/CORS, config and Neon rows in `evidence/PUBLIC-DEPLOYMENT.txt`; public smoke in `evidence/PUBLIC-SMOKE.txt`; public browser in `evidence/PUBLIC-E2E-*.png` |
+| 6. Deployment approach | `docs/deployment.md`; verified Floci `ALL CHECKS PASSED` at `http://079d67cedb.execute-api.localhost.floci.io:4566`; public Cloudflare + Neon URLs, health/CORS, config and Neon rows in `evidence/PUBLIC-DEPLOYMENT.txt`; public smoke in `evidence/PUBLIC-SMOKE.txt`; public browser in `evidence/PUBLIC-E2E-*.png` |
 | 7. GitHub repository | `[REPO_URL]` + branches exist; PR/review/tag evidence — **not yet created** |
 | 8. Demo video | `[VIDEO_URL]` recorded from **https://bdo-organizer.polarized-tarsal.workers.dev** — **not yet created** |
 | 9. Testing | `npm test` 53/53; local smoke 22/22; Floci smoke 22/22 (`storage:"s3"`); public Cloudflare/Neon smoke 22/22 (`storage:"database"`); `docs/testing.md` case IDs + captured `curl`/Postman responses, test-run screenshots, DB rows |
@@ -283,7 +283,7 @@ Video guidance (≤5 minutes): show the public URL first, run steps 1–9 quickl
 - [x] SPA with all eight routes and screens for organizer, donor and booking workflows.
 - [x] Shared router, store abstraction (SQLite/DynamoDB/Neon), crypto, validation, service client and external integrations.
 - [x] Local one-command dev environment on ports 8090/3001/3002/3003 with WAL-protected SQLite; seed final message fixed to 8090.
-- [x] Floci deployment completes: `ALL CHECKS PASSED` at `http://4f503503dd.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets; drive/donor/booking health, drive list, website and Floci dashboard all return 200.
+- [x] Floci deployment completes: `ALL CHECKS PASSED` at `http://079d67cedb.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets; drive/donor/booking health, drive list, website and Floci dashboard all return 200.
 - [x] Floci fixes: relative `fileb://dist/lambda/<service>.zip` paths, Lambda `AWS_ENDPOINT_URL=http://floci:4566`, DynamoDB `reserveSeat()` read-compare-update with retry, S3 `forcePathStyle`, and `serverless-http` Buffer normalization in `shared/router.js`.
 - [x] Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in are verified locally and on Floci.
 - [x] `npm test`: 53 tests, 53 pass, 0 fail across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`.

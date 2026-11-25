@@ -1,0 +1,44 @@
+FLOCI DOCKER COMPOSE DEPLOYMENT EVIDENCE
+Captured: 2026-11-25
+Repository: blood-donation-drive-organizer
+
+Docker start (from the project root):
+  docker compose -f infra/floci/docker-compose.yml up -d
+
+Compose settings verified:
+  container_name : bdo-floci
+  image          : floci/floci:latest-compat
+  publish        : 4566:4566
+  environment    : AWS_DEFAULT_REGION=us-east-1, dummy AWS creds test/test, FLOCI_STORAGE_MODE=hybrid
+  volumes        : /var/run/docker.sock:/var/run/docker.sock, floci_floci-data:/app/data
+
+The previous emulator container was stopped without deleting its named volume.
+infra/.state was cleared so this Docker deployment created a fresh HTTP API.
+
+Floci health:
+  http://localhost:4566/_floci/health -> 200
+  docker ps: bdo-floci Up (healthy), 0.0.0.0:4566->4566/tcp
+
+Full lab deployment (Git Bash):
+  bash infra/deploy-all.sh
+  Result: ALL CHECKS PASSED
+  API Gateway: http://079d67cedb.execute-api.localhost.floci.io:4566
+  Website:     http://localhost:4566/bdo-web/index.html
+
+Verification output:
+  API Gateway: http://079d67cedb.execute-api.localhost.floci.io:4566
+  PASS  Drive health (200)
+  PASS  Donor health (200)
+  PASS  Booking health (200)
+  PASS  Drive list (200)
+  PASS  Website file (200)
+  PASS  Floci dashboard (200)
+  DynamoDB tables:
+  bdo_bookings bdo_donations bdo_donors bdo_drives bdo_geocodes bdo_reminders bdo_reports bdo_slots bdo_users
+  Lambda functions:
+  bdo-booking-service bdo-donor-service bdo-drive-service
+  S3 buckets:
+  bdo-drive-reports bdo-web
+  ALL CHECKS PASSED
+
+Next evidence: evidence/FLOCI-SMOKE.txt (22/22 PASS through this gateway).

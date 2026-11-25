@@ -1,9 +1,10 @@
 ﻿FLOCI DEPLOYMENT + SMOKE EVIDENCE
-Captured: 2026-11-25 (redeploy with current code and git-ignored secrets.env)
-API Gateway: http://4f503503dd.execute-api.localhost.floci.io:4566
+Captured: 2026-11-25 (fresh repo-owned Docker Compose deployment)
+Docker evidence: evidence/FLOCI-DOCKER.txt
+API Gateway: http://079d67cedb.execute-api.localhost.floci.io:4566
 Website: http://localhost:4566/bdo-web/index.html
 
-Redeploy: bash infra/deploy-all.sh -> ALL CHECKS PASSED (3 Lambdas, 9 DynamoDB tables, 2 S3 buckets, website/dashboard 200)
+Deploy: bash infra/deploy-all.sh -> ALL CHECKS PASSED
 Smoke command: BDO_API_URL=<gateway> ORGANIZER_INVITE=<dev invite> npm run smoke
 Note: invite/code/JWT values are redacted by the smoke script output; no secret is stored here.
 
@@ -17,25 +18,25 @@ PASS  donor POST /api/auth/login -> 200
 PASS  donor POST /api/auth/login -> 200
 PASS  donor GET /api/auth/me -> 200
 PASS  drive POST /api/drives -> 201
-PASS  drive POST /api/drives/drv_779243e3-cb6f-455d-9e04-f110142566d9/slots -> 201
+PASS  drive POST /api/drives/drv_895c5f15-b4e7-422d-a9d9-22b77e257b8b/slots -> 201
 PASS  donor GET /api/donors/me/eligibility?date=2026-12-01 -> 200
   eligibility: true You meet the basic donation criteria
 PASS  booking POST /api/bookings -> 201
-  booking id: drv_779243e3-cb6f-455d-9e04-f110142566d9__donor-mww41iys@demo.org
+  booking id: drv_895c5f15-b4e7-422d-a9d9-22b77e257b8b__donor-mww55o5w@demo.org
 PASS  booking POST /api/bookings -> 409
 PASS  booking GET /api/bookings/mine -> 200
-PASS  booking GET /api/bookings?driveId=drv_779243e3-cb6f-455d-9e04-f110142566d9 -> 200
+PASS  booking GET /api/bookings?driveId=drv_895c5f15-b4e7-422d-a9d9-22b77e257b8b -> 200
 PASS  booking POST /api/reminders/send -> 200
 PASS  booking POST /api/reminders/send -> 200
   reminders: 1 sent, 1 skipped on repeat
-PASS  booking PATCH /api/bookings/drv_779243e3-cb6f-455d-9e04-f110142566d9__donor-mww41iys%40demo.org/check-in -> 200
+PASS  booking PATCH /api/bookings/drv_895c5f15-b4e7-422d-a9d9-22b77e257b8b__donor-mww55o5w%40demo.org/check-in -> 200
   check-in: attended Attendance and donation recorded.
 PASS  donor GET /api/donors/me/donations -> 200
   donations: 1
-PASS  drive GET /api/drives/drv_779243e3-cb6f-455d-9e04-f110142566d9/report -> 200
+PASS  drive GET /api/drives/drv_895c5f15-b4e7-422d-a9d9-22b77e257b8b/report -> 200
   report: {"booked":1,"attended":1,"turnout":100,"storage":"s3"}
 PASS  booking GET /api/bookings/mine -> 401
-PASS  booking GET /api/bookings?driveId=drv_779243e3-cb6f-455d-9e04-f110142566d9 -> 403
+PASS  booking GET /api/bookings?driveId=drv_895c5f15-b4e7-422d-a9d9-22b77e257b8b -> 403
 PASS  drive GET /api/drives/does_not_exist -> 404
 PASS  drive POST /api/drives -> 400
 PASS  donor POST /api/auth/register -> 409

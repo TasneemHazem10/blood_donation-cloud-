@@ -207,7 +207,7 @@ reminder row exists for each send attempt, and `bdo_geocodes` contains the live 
 ```powershell
 npm run smoke                                         # local: expect 22/22 PASS
 # Floci (after deployment), API URL is in infra/.state:
-$env:BDO_API_URL='http://4f503503dd.execute-api.localhost.floci.io:4566'
+$env:BDO_API_URL='http://079d67cedb.execute-api.localhost.floci.io:4566'
 npm run smoke                                         # expect 22/22 PASS, storage:"s3"
 bash infra/check.sh                                   # expect all PASS / ALL CHECKS PASSED
 
