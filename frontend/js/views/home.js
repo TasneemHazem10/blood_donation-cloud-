@@ -1,5 +1,5 @@
 import { request } from '../api.js';
-import { esc, formatDate, statusBadge, emptyState } from '../ui.js';
+import { esc, formatDate, statusBadge, emptyState, isCurrent } from '../ui.js';
 
 export async function renderHome(root, ctx) {
   root.innerHTML = `<section class="hero">
@@ -34,6 +34,7 @@ export async function renderHome(root, ctx) {
 
   try {
     const data = await request('drive', 'GET', '/api/drives', { auth: false });
+    if (!isCurrent(ctx)) return;
     const drives = (data.drives || []).filter((drive) => drive.status === 'scheduled').slice(0, 3);
     root.querySelector('#statDrives').textContent = String(data.count || 0);
     root.querySelector('#statSeats').textContent = String(drives.reduce((sum, drive) =>
@@ -48,6 +49,7 @@ export async function renderHome(root, ctx) {
         </article>`).join('')
       : emptyState('No upcoming drives yet', 'An organizer can create the first drive from the Organizer page.');
   } catch (error) {
+    if (!isCurrent(ctx)) return;
     root.querySelector('#homeDrives').innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
     root.querySelector('#statDrives').textContent = '—';
     root.querySelector('#statSeats').textContent = '—';

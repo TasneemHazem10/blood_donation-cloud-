@@ -5,8 +5,13 @@ export function esc(value) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+export function isCurrent(ctx) {
+  return !ctx || typeof ctx.isCurrent !== 'function' || ctx.isCurrent();
+}
+
 export function toast(message, type = 'info') {
   const host = document.getElementById('toastHost');
+  if (!host) return;
   const node = document.createElement('div');
   node.className = `toast ${type}`;
   node.textContent = message;
@@ -50,6 +55,7 @@ export function formValue(form, name) {
 export function confirmDialog(title, message, confirmLabel = 'Confirm') {
   return new Promise((resolve) => {
     const host = document.getElementById('modalHost');
+    if (!host) { resolve(false); return; }
     host.innerHTML = `<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true">
       <h2>${esc(title)}</h2><p class="muted">${esc(message)}</p>
       <div class="form-actions"><button class="btn btn-danger" data-yes>${esc(confirmLabel)}</button>
@@ -65,6 +71,7 @@ export function confirmDialog(title, message, confirmLabel = 'Confirm') {
 
 export function renderNav(user) {
   const nav = document.getElementById('siteNav');
+  if (!nav) return;
   const links = [
     ['#/', 'Home', 'home'],
     ['#/drives', 'Find a drive', 'drives'],
@@ -84,7 +91,8 @@ export function renderNav(user) {
   nav.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', () => {
       nav.classList.remove('open');
-      document.getElementById('navToggle').setAttribute('aria-expanded', 'false');
+      const toggle = document.getElementById('navToggle');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
     });
   });
   const logout = nav.querySelector('[data-logout]');

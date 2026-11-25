@@ -60,9 +60,10 @@ Expected account: `000000000000`. Dashboard: <http://localhost:4566/_floci/ui>. 
 npm install
 npm test
 npm run dev
+npm run browser:check
 ```
 
-Website: <http://localhost:8090>. APIs: 3001/3002/3003. The lab app uses 8080/3000; BDO uses separate ports for its three services.
+Website: <http://localhost:8090>. APIs: 3001/3002/3003. The lab app uses 8080/3000; BDO uses separate ports for its three services. `browser:check` verifies that a slow API response cannot overwrite a newer screen (Chrome/Chromium required).
 
 ## Lab 3: REST design and data services
 
@@ -186,6 +187,7 @@ Security checks are implemented in `shared/http.js` (`X-Content-Type-Options`, `
 | Lab 8 k6 | `evidence/LAB-08-K6.txt` |
 | Lab 8 checks | `evidence/LAB-08-CHECK.txt` |
 | Unit and local smoke | `evidence/NPM-TEST.txt`, `evidence/LOCAL-SMOKE.txt` |
+| Browser render regression | `evidence/BROWSER-RENDER-REGRESSION.txt` |
 | Public deployment | `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-CAPTURE.txt` |
 
 Do not paste claim URLs, API tokens, Neon connection strings or `.dev.vars` into these files.

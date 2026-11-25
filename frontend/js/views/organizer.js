@@ -1,7 +1,8 @@
 import { request } from '../api.js';
-import { esc, formatDate, statusBadge, emptyState, toast, confirmDialog, formValue } from '../ui.js';
+import { esc, formatDate, statusBadge, emptyState, toast, confirmDialog, formValue, isCurrent } from '../ui.js';
 
 export async function renderOrganizer(root, ctx) {
+  if (!isCurrent(ctx)) return;
   root.innerHTML = `<section class="section">
     <div class="panel-title"><div><h2>Organizer dashboard</h2><p class="muted">Create drives, manage slots, check in donors and follow turnout.</p></div>
       <button class="btn btn-primary" id="toggleCreate">+ New drive</button></div>
@@ -36,6 +37,7 @@ export async function renderOrganizer(root, ctx) {
     const body = root.querySelector('#organizerBody');
     try {
       const drives = await loadDrives();
+      if (!isCurrent(ctx)) return;
       if (!drives.length) {
         body.innerHTML = emptyState('You have not published a drive yet', 'Use “New drive” to create your first drive, then add time slots.');
         return;
@@ -71,6 +73,7 @@ export async function renderOrganizer(root, ctx) {
         if (!yes) return;
         try {
           await request('drive', 'PATCH', `/api/drives/${button.dataset.cancelDrive}/status`, { body: { status: 'cancelled' } });
+          if (!isCurrent(ctx)) return;
           toast('Drive cancelled and donors notified.', 'success');
           await renderBody();
         } catch (error) { toast(error.message, 'error'); }
@@ -80,6 +83,7 @@ export async function renderOrganizer(root, ctx) {
         if (!yes) return;
         try {
           await request('drive', 'DELETE', `/api/drives/${button.dataset.deleteDrive}`);
+          if (!isCurrent(ctx)) return;
           toast('Drive deleted.', 'success');
           selectedId = null;
           await renderBody();
@@ -88,11 +92,13 @@ export async function renderOrganizer(root, ctx) {
 
       await renderTab(body.querySelector('#tabBody'), drive);
     } catch (error) {
+      if (!isCurrent(ctx)) return;
       body.innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
     }
   }
 
   async function renderTab(container, drive) {
+    if (!isCurrent(ctx) || !container) return;
     if (tab === 'slots') {
       container.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Time</th><th>Booked</th><th></th></tr></thead><tbody>
         ${drive.slots.length ? drive.slots.map((slot) => `<tr><td>${esc(slot.startTime)} – ${esc(slot.endTime)}</td>
@@ -113,6 +119,7 @@ export async function renderOrganizer(root, ctx) {
           await request('drive', 'POST', `/api/drives/${drive.id}/slots`, {
             body: { startTime: formValue(form, 'startTime'), endTime: formValue(form, 'endTime'), capacity: Number(formValue(form, 'capacity')) }
           });
+          if (!isCurrent(ctx)) return;
           toast('Time slot added.', 'success');
           await renderBody();
         } catch (error) { toast(error.message, 'error'); }
@@ -120,6 +127,7 @@ export async function renderOrganizer(root, ctx) {
       container.querySelectorAll('[data-delete-slot]').forEach((button) => { button.onclick = async () => {
         try {
           await request('drive', 'DELETE', `/api/drives/${drive.id}/slots/${button.dataset.deleteSlot}`);
+          if (!isCurrent(ctx)) return;
           toast('Slot deleted.', 'success');
           await renderBody();
         } catch (error) { toast(error.message, 'error'); }
@@ -130,6 +138,7 @@ export async function renderOrganizer(root, ctx) {
       container.innerHTML = '<div class="loading-screen">Loading bookings…</div>';
       try {
         const data = await request('booking', 'GET', `/api/bookings?driveId=${encodeURIComponent(drive.id)}`);
+        if (!isCurrent(ctx)) return;
         container.innerHTML = data.count ? `<div class="table-wrap"><table><thead><tr><th>Donor</th><th>Slot</th><th>Status</th><th></th></tr></thead><tbody>
           ${data.bookings.map((booking) => `<tr><td>${esc(booking.donorName)}<br><span class="small muted">${esc(booking.bloodType || '')}</span></td>
             <td>${esc(booking.startTime)} – ${esc(booking.endTime)}</td><td>${statusBadge(booking.status)}</td>
@@ -140,11 +149,14 @@ export async function renderOrganizer(root, ctx) {
         container.querySelectorAll('[data-check]').forEach((button) => { button.onclick = async () => {
           try {
             await request('booking', 'PATCH', `/api/bookings/${button.dataset.check}/check-in`, { body: { outcome: button.dataset.outcome } });
+            if (!isCurrent(ctx)) return;
             toast(button.dataset.outcome === 'attended' ? 'Attendance and donation recorded.' : 'Marked as no-show.', 'success');
             await renderBody();
           } catch (error) { toast(error.message, 'error'); }
         }; });
-      } catch (error) { container.innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`; }
+      } catch (error) {
+        if (isCurrent(ctx)) container.innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
+      }
     }
 
     if (tab === 'report') {
@@ -153,6 +165,7 @@ export async function renderOrganizer(root, ctx) {
       container.querySelector('#makeReport').onclick = async () => {
         try {
           const report = await request('drive', 'GET', `/api/drives/${drive.id}/report`);
+          if (!isCurrent(ctx)) return;
           container.querySelector('#reportOut').innerHTML = `<div class="panel"><div class="kv">
             <div><span>Capacity</span><strong>${report.capacity}</strong></div>
             <div><span>Booked</span><strong>${report.booked}</strong></div>
@@ -174,15 +187,19 @@ export async function renderOrganizer(root, ctx) {
         event.preventDefault();
         try {
           const result = await request('booking', 'POST', '/api/reminders/send', { body: { date: formValue(event.currentTarget, 'date') } });
+          if (!isCurrent(ctx)) return;
           toast(`Reminders: ${result.sent} sent, ${result.skipped} skipped, ${result.failed} failed.`, 'success');
         } catch (error) { toast(error.message, 'error'); }
       };
       try {
         const log = await request('booking', 'GET', '/api/reminders');
+        if (!isCurrent(ctx)) return;
         container.querySelector('#reminderOut').innerHTML = log.count ? `<div class="table-wrap"><table><thead><tr><th>To</th><th>Type</th><th>Status</th></tr></thead><tbody>
           ${log.reminders.slice(0, 12).map((row) => `<tr><td>${esc(row.to)}</td><td>${esc(row.type)}</td><td>${statusBadge(row.status)}</td></tr>`).join('')}
           </tbody></table></div>` : emptyState('No emails yet', 'Confirmations and reminders are logged here.');
-      } catch (error) { container.querySelector('#reminderOut').innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`; }
+      } catch (error) {
+        if (isCurrent(ctx)) container.querySelector('#reminderOut').innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
+      }
     }
   }
 
@@ -194,6 +211,7 @@ export async function renderOrganizer(root, ctx) {
         title: formValue(form, 'title'), venue: formValue(form, 'venue'), city: formValue(form, 'city'),
         date: formValue(form, 'date'), description: formValue(form, 'description')
       } });
+      if (!isCurrent(ctx)) return;
       toast('Drive published. Now add time slots.', 'success');
       form.reset();
       createPanel.hidden = true;

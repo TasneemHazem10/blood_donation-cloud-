@@ -21,6 +21,7 @@
     "deploy:floci": "bash infra/deploy-all.sh",
     "deploy:cloudflare": "node infra/scripts/configure-cloudflare.js",
     "evidence:capture": "node infra/scripts/capture-evidence.js",
+    "browser:check": "node infra/scripts/browser-render-regression.mjs",
     "floci:up": "bash infra/setup-all.sh",
     "floci:app": "bash infra/run-floci.sh",
     "lab7": "bash infra/setup-lab7.sh",

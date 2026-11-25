@@ -1,5 +1,5 @@
 import { request, setSession } from '../api.js';
-import { esc, toast, formValue } from '../ui.js';
+import { esc, toast, formValue, isCurrent } from '../ui.js';
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -42,12 +42,15 @@ export function renderLogin(root, ctx) {
         auth: false,
         body: { email: formValue(form, 'email'), password: formValue(form, 'password'), turnstileToken: await botToken() }
       });
+      if (!isCurrent(ctx)) return;
       setSession(data.token, data.user);
       toast(`Welcome back, ${data.user.name}!`, 'success');
       window.dispatchEvent(new Event('bdo:session'));
       ctx.navigate(data.user.role === 'organizer' ? '#/organizer' : '#/profile');
     } catch (error) {
-      root.querySelector('#authError').innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
+      if (isCurrent(ctx)) {
+        root.querySelector('#authError').innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
+      }
     } finally { button.disabled = false; }
   };
 }
@@ -104,12 +107,15 @@ export function renderRegister(root, ctx) {
 
     try {
       const data = await request('donor', 'POST', '/api/auth/register', { auth: false, body });
+      if (!isCurrent(ctx)) return;
       setSession(data.token, data.user);
       toast('Account created. Welcome to BloodLink!', 'success');
       window.dispatchEvent(new Event('bdo:session'));
       ctx.navigate(data.user.role === 'organizer' ? '#/organizer' : '#/profile');
     } catch (error) {
-      root.querySelector('#authError').innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
+      if (isCurrent(ctx)) {
+        root.querySelector('#authError').innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
+      }
     } finally { button.disabled = false; }
   };
 }

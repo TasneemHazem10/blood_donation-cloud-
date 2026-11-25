@@ -1,14 +1,15 @@
 PUBLIC FRONTEND BROWSER EVIDENCE CAPTURE
-capturedAt: 2026-11-25T18:28:36.0821703Z
+capturedAt: 2026-11-25T19:03:49.964Z
 base URL: https://bdo-organizer.bdo-organizer.workers.dev
-browser: Google Chrome headless (--headless=new), window 1440x1000, virtual time budget 8000 ms
+browser: Google Chrome headless (--headless=new), window 1440x1000, virtual time budget 12000 ms
 
-Screenshots (final permanent Cloudflare account, not the earlier preview subdomain):
+Screenshots (final permanent Cloudflare account, after the stale-render fix):
 - evidence/PUBLIC-E2E-home.png     route: /#/
 - evidence/PUBLIC-E2E-drives.png   route: /#/drives
 
 DOM verification performed with the same headless browser and virtual time budget:
-- home: active navigation "Home"; footer systemStatus = "3/3 services online"; app shell rendered by the deployed Worker.
+- home: active navigation "Home"; hero text rendered; footer systemStatus = "3/3 services online"; live drive cards rendered from the Drive Worker with "View slots" links.
 - drives: active navigation "Find a drive"; footer systemStatus = "3/3 services online"; live drive cards rendered from the Drive Worker with "View time slots" links.
+- stale-render regression: see evidence/BROWSER-RENDER-REGRESSION.txt (PASS against the same public URL).
 
 No credentials, JWTs, invite codes or API tokens appear in the screenshots or this file.

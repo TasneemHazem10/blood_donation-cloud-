@@ -1,5 +1,5 @@
 import { request, clearSession } from '../api.js';
-import { esc, formatDate, statusBadge, emptyState, toast, confirmDialog, formValue } from '../ui.js';
+import { esc, formatDate, statusBadge, emptyState, toast, confirmDialog, formValue, isCurrent } from '../ui.js';
 
 export async function renderProfile(root, ctx) {
   root.innerHTML = `<section class="section"><div class="panel-title"><div><h2>My donor profile</h2>
@@ -11,6 +11,7 @@ export async function renderProfile(root, ctx) {
       request('donor', 'GET', '/api/donors/me/eligibility'),
       request('donor', 'GET', '/api/donors/me/donations')
     ]);
+    if (!isCurrent(ctx)) return;
     const donor = profile.donor;
     const bannerClass = eligibility.eligible ? 'alert-success' : 'alert-info';
     root.querySelector('#profileBody').innerHTML = `<div class="alert ${bannerClass}">
@@ -52,6 +53,7 @@ export async function renderProfile(root, ctx) {
           birthYear: Number(formValue(form, 'birthYear')),
           phone: formValue(form, 'phone')
         } });
+        if (!isCurrent(ctx)) return;
         toast('Profile saved. Eligibility has been recalculated.', 'success');
         await renderProfile(root, ctx);
       } catch (error) { toast(error.message, 'error'); }
@@ -61,6 +63,7 @@ export async function renderProfile(root, ctx) {
       if (!confirmed) return;
       try {
         await request('donor', 'DELETE', '/api/donors/me');
+        if (!isCurrent(ctx)) return;
         clearSession();
         window.dispatchEvent(new Event('bdo:session'));
         toast('Your account was deleted.', 'success');
@@ -68,6 +71,7 @@ export async function renderProfile(root, ctx) {
       } catch (error) { toast(error.message, 'error'); }
     };
   } catch (error) {
+    if (!isCurrent(ctx)) return;
     root.querySelector('#profileBody').innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
   }
 }
@@ -79,6 +83,7 @@ export async function renderBookings(root, ctx) {
     <div id="bookingsBody"><div class="loading-screen">Loading bookings…</div></div></section>`;
   try {
     const data = await request('booking', 'GET', '/api/bookings/mine');
+    if (!isCurrent(ctx)) return;
     root.querySelector('#bookingsBody').innerHTML = data.count
       ? `<div class="panel table-wrap"><table><thead><tr><th>Drive</th><th>Date & time</th><th>Status</th><th></th></tr></thead><tbody>
         ${data.bookings.map((booking) => `<tr>
@@ -97,12 +102,14 @@ export async function renderBookings(root, ctx) {
         button.disabled = true;
         try {
           await request('booking', 'POST', `/api/bookings/${encodeURIComponent(button.dataset.cancel)}/cancel`, { body: {} });
+          if (!isCurrent(ctx)) return;
           toast('Booking cancelled. The seat is available again.', 'success');
           await renderBookings(root, ctx);
         } catch (error) { toast(error.message, 'error'); button.disabled = false; }
       };
     });
   } catch (error) {
+    if (!isCurrent(ctx)) return;
     root.querySelector('#bookingsBody').innerHTML = `<div class="alert alert-error">${esc(error.message)}</div>`;
   }
 }

@@ -18,7 +18,7 @@ below is claimed as done until you perform it.
 | `npm test` | ✅ 59 tests, 59 pass, 0 fail |
 | Local smoke / Floci smoke | ✅ 22/22 each; repo-owned Docker Compose Floci `ALL CHECKS PASSED` (`evidence/FLOCI-DOCKER.txt`, `evidence/FLOCI-SMOKE.txt`) |
 | Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.bdo-organizer.workers.dev`; public smoke 22/22 |
-| Evidence files | ✅ `evidence/NPM-TEST.txt`, `LOCAL-SMOKE.txt`, `DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `FLOCI-DOCKER.txt`, `FLOCI-SMOKE.txt`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png`, `PUBLIC-E2E-CAPTURE.txt`, `LAB-07-CHECK.txt`, `LAB-08-CHECK.txt`, `LAB-08-K6.txt`, `lab-04-postman-collection.json` |
+| Evidence files | ✅ `evidence/NPM-TEST.txt`, `LOCAL-SMOKE.txt`, `DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `FLOCI-DOCKER.txt`, `FLOCI-SMOKE.txt`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png`, `PUBLIC-E2E-CAPTURE.txt`, `BROWSER-RENDER-REGRESSION.txt`, `LAB-07-CHECK.txt`, `LAB-08-CHECK.txt`, `LAB-08-K6.txt`, `lab-04-postman-collection.json` |
 | Report draft | ✅ `docs/report.md` sections 1–10 + appendix |
 | Three 9-item statements | ✅ `docs/individual-statements.md` |
 

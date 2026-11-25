@@ -19,6 +19,7 @@ node --version          # must be 22 or newer
 npm install
 npm test                # expect: 59 tests, 59 pass, 0 fail
 npm run dev             # starts APIs on 3001/3002/3003 and SPA on 8090
+npm run browser:check   # expect: PASS; verifies stale renders cannot overwrite a new screen
 ```
 
 In a second terminal:

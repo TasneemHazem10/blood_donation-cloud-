@@ -88,7 +88,7 @@ All four should return HTTP 200.
 npm test
 ```
 
-The suite uses Node's built-in test runner and Supertest (59 tests, 59 pass). It covers business rules, every service API, validation/error codes and a full cross-service journey. To regenerate request/response evidence for live geocoding, the login rate limit and the Turnstile missing-token branch, run `npm run evidence:capture`; the files are written to `evidence/`. See [`docs/testing.md`](docs/testing.md) for the report table and evidence checklist.
+The suite uses Node's built-in test runner and Supertest (59 tests, 59 pass). It covers business rules, every service API, validation/error codes and a full cross-service journey. With `npm run dev` running, `npm run browser:check` uses headless Chrome to verify that a slow API response cannot overwrite a newer screen. To regenerate request/response evidence for live geocoding, the login rate limit and the Turnstile missing-token branch, run `npm run evidence:capture`; the files are written to `evidence/`. See [`docs/testing.md`](docs/testing.md) for the report table and evidence checklist.
 
 Useful API examples:
 

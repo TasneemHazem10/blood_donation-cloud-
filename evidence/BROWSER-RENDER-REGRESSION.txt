@@ -1,0 +1,7 @@
+Captured: 2026-11-25T19:01:10.497Z
+URL: https://bdo-organizer.bdo-organizer.workers.dev/#/
+Method: delay /api/drives by 2500ms, then navigate from #/ to #/login before the response arrives
+Result: PASS
+Login screen rendered after stale response: YES
+Null innerHTML error rendered: NO
+Uncaught runtime exceptions: 0
