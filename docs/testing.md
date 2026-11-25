@@ -120,4 +120,4 @@ bash infra/deploy-all.sh          # Git Bash; ends with ALL CHECKS PASSED
 * Save screenshots/JSON files named with the test ID, e.g. `evidence/BOK-06-checkin.png`.
 * Mark a row PASS only from an observed result; `PENDING` above means the capability exists but evidence has not been captured.
 * Keep invalid-case evidence for `400`, `401`, `403`, `404`, `409`, `429` and `502` as required by the brief.
-* Do not include real `JWT_SECRET`, `INTERNAL_KEY`, `BREVO_API_KEY`, `TURNSTILE_SECRET` or a real JWT in a screenshot. Redact tokens after capturing the status code.
+* Do not include real `JWT_SECRET`, `INTERNAL_KEY`, `RESEND_API_KEY`/`BREVO_API_KEY`, `TURNSTILE_SECRET` or a real JWT in a screenshot. Redact tokens after capturing the status code.

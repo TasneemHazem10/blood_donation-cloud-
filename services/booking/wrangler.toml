@@ -7,7 +7,15 @@ compatibility_flags = ["global_fetch_strictly_public"]
 DATA_DRIVER = "neon"
 NODE_ENV = "production"
 EMAIL_MODE = "log"
-CORS_ORIGINS = "https://bdo-organizer.pages.dev"
+CORS_ORIGINS = "https://bdo-organizer.polarized-tarsal.workers.dev"
+
+[[services]]
+binding = "DRIVE"
+service = "bdo-drive"
+
+[[services]]
+binding = "DONOR"
+service = "bdo-donor"
 
 [triggers]
 crons = ["0 6 * * *"]

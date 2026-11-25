@@ -6,7 +6,12 @@ const { config } = require('./config');
 const { HttpError } = require('./errors');
 
 let fetchImpl = (...args) => globalThis.fetch(...args);
+let serviceBindings = null;
 function setServiceFetch(impl) { fetchImpl = impl || ((...args) => globalThis.fetch(...args)); }
+
+// Cloudflare Workers can call each other through service bindings instead of
+// public workers.dev URLs. A binding exposes `fetch(request, init)`.
+function setServiceBindings(bindings) { serviceBindings = bindings || null; }
 
 const BASES = {
   drive: (settings) => settings.driveUrl,
@@ -29,14 +34,18 @@ async function callService(service, method, path, options = {}) {
   if (options.internal !== false) headers['x-internal-key'] = settings.internalKey;
   if (options.token) headers.authorization = `Bearer ${options.token}`;
 
+  const init = {
+    method,
+    headers,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    signal: AbortSignal.timeout(10000)
+  };
+  const binding = serviceBindings && serviceBindings[service];
   let response;
   try {
-    response = await fetchImpl(url.toString(), {
-      method,
-      headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      signal: AbortSignal.timeout(10000)
-    });
+    response = binding
+      ? await binding.fetch(url.toString(), init)
+      : await fetchImpl(url.toString(), init);
   } catch (error) {
     throw new HttpError(502, `${service} service is unreachable: ${error.message}`, 'SERVICE_UNAVAILABLE');
   }
@@ -55,4 +64,4 @@ async function callService(service, method, path, options = {}) {
   return payload;
 }
 
-module.exports = { callService, setServiceFetch };
+module.exports = { callService, setServiceFetch, setServiceBindings };

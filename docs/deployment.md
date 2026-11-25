@@ -24,7 +24,7 @@ All URLs, account ids and credentials below are **placeholders**. Never commit a
 * `bash infra/deploy-all.sh` now completes: **ALL CHECKS PASSED** — drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200. API Gateway: `http://4f503503dd.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets.
 * Floci smoke through the API Gateway: **22 PASS**, report `storage:"s3"`.
 * Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in work.
-* Public Cloudflare/Neon deployment is **live**: `https://bdo-organizer.tourmaline-headphones.workers.dev`; public smoke **22 PASS**, health/CORS/config/Neon evidence in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots in `evidence/PUBLIC-E2E-*.png`. Only the demo video still needs to be recorded.
+* Public Cloudflare/Neon deployment is **live**: `https://bdo-organizer.polarized-tarsal.workers.dev`; public smoke **22 PASS**, health/CORS/config/Neon evidence in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots in `evidence/PUBLIC-E2E-*.png`. Only the demo video still needs to be recorded.
 
 ---
 
@@ -111,12 +111,12 @@ Verified on 25 Nov 2026: this script completes with **ALL CHECKS PASSED**. Deplo
 | --- | --- | --- |
 | **Habiba — Drive** (`infra/services/drive.sh`) | 1. DynamoDB (4 tables)<br>2. S3 (`bdo-drive-reports` for CSV snapshots)<br>3. IAM role + policy<br>4. CloudWatch Logs<br>5. Lambda (`nodejs22.x`, 20 s)<br>6. API Gateway routes | tables `bdo_drives`, `bdo_slots`, `bdo_reports`, `bdo_geocodes`; IAM `bdo-drive-role`; log group `/aws/lambda/bdo-drive-service`; Lambda `bdo-drive-service` |
 | **Tasneem — Donor** (`infra/services/donor.sh`) | 1. DynamoDB (3 tables)<br>2. IAM role + policy<br>3. CloudWatch Logs<br>4. Lambda<br>5. API Gateway routes<br>(Turnstile is an external SaaS check) | tables `bdo_users`, `bdo_donors`, `bdo_donations`; IAM `bdo-donor-role`; log group `/aws/lambda/bdo-donor-service`; Lambda `bdo-donor-service`; `TURNSTILE_SECRET` env var |
-| **Hala — Booking** (`infra/services/booking.sh`) | 1. DynamoDB (2 tables)<br>2. IAM role + policy (incl. `lambda:InvokeFunction`)<br>3. CloudWatch Logs<br>4. Lambda<br>5. EventBridge rule<br>6. API Gateway routes<br>(Brevo is external) | tables `bdo_bookings`, `bdo_reminders`; IAM `bdo-booking-role`; log group `/aws/lambda/bdo-booking-service`; Lambda `bdo-booking-service`; rule `bdo-daily-reminders` |
+| **Hala — Booking** (`infra/services/booking.sh`) | 1. DynamoDB (2 tables)<br>2. IAM role + policy (incl. `lambda:InvokeFunction`)<br>3. CloudWatch Logs<br>4. Lambda<br>5. EventBridge rule<br>6. API Gateway routes<br>(Resend is external) | tables `bdo_bookings`, `bdo_reminders`; IAM `bdo-booking-role`; log group `/aws/lambda/bdo-booking-service`; Lambda `bdo-booking-service`; rule `bdo-daily-reminders` |
 | Shared | 1. API Gateway HTTP API (all routes + `OPTIONS` proxy routes)<br>2. S3 static website `bdo-web` with public read policy | `API_ID`, `API_URL` in `infra/.state`; site URL `<FLOCI_URL>/bdo-web/index.html` |
 
 `infra/gateway.sh` creates one HTTP API and maps each `METHOD /path` (curly-brace parameters) to the owning Lambda. `infra/frontend.sh` copies `frontend/index.html`, `css/`, `js/` and generates `js/config.js` pointing all three services at `API_URL`; no secret is written to that file.
 
-Environment variables passed to the Lambdas include `DATA_DRIVER=dynamo`, `AWS_ENDPOINT_URL=http://floci:4566` (Docker DNS), JWT/internal/invite values, the three service URLs, `CORS_ORIGINS=http://localhost:4566`, plus `REPORTS_BUCKET` (drive), `TURNSTILE_SECRET` (donor) and `EMAIL_MODE`/`BREVO_API_KEY` (booking).
+Environment variables passed to the Lambdas include `DATA_DRIVER=dynamo`, `AWS_ENDPOINT_URL=http://floci:4566` (Docker DNS), JWT/internal/invite values, the three service URLs, `CORS_ORIGINS=http://localhost:4566`, plus `REPORTS_BUCKET` (drive), `TURNSTILE_SECRET` (donor) and `EMAIL_MODE`/`RESEND_API_KEY` (or `BREVO_API_KEY`) (booking).
 
 ### 2.4 Daily reminder cron on Floci
 
@@ -192,7 +192,7 @@ npx wrangler deploy --config services/donor/wrangler.toml   # -> <DONOR_WORKER_U
 npx wrangler deploy --config services/booking/wrangler.toml # -> <BOOKING_WORKER_URL>
 ```
 
-Each `wrangler.toml` sets `main = "dist/worker.js"`, `DATA_DRIVER = "neon"`, `NODE_ENV = "production"` and a default `CORS_ORIGINS` of `https://bdo-organizer.pages.dev`; the live deployment overrides it as a Worker secret with `https://bdo-organizer.tourmaline-headphones.workers.dev` (verified in `evidence/PUBLIC-DEPLOYMENT.txt`). All three also set `compatibility_flags = ["global_fetch_strictly_public"]` for Worker-to-Worker fetches. Booking sets `EMAIL_MODE = "log"`; set it to a live value only after a Brevo key is configured.
+Each `wrangler.toml` sets `main = "dist/worker.js"`, `DATA_DRIVER = "neon"`, `NODE_ENV = "production"` and `CORS_ORIGINS = "https://bdo-organizer.polarized-tarsal.workers.dev"` (verified in `evidence/PUBLIC-DEPLOYMENT.txt`). All three also set `compatibility_flags = ["global_fetch_strictly_public"]`. Cross-service calls use service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking) to avoid preview-account `522` errors. The Booking Worker uses the `EMAIL_MODE=live` secret with a git-ignored `RESEND_API_KEY`.
 
 ### 3.4 Secrets and variables
 
@@ -215,8 +215,9 @@ npx wrangler secret put BOOKING_SERVICE_URL --config services/drive/wrangler.tom
 npx wrangler secret put TURNSTILE_SECRET --config services/donor/wrangler.toml
 
 # Booking only
-npx wrangler secret put BREVO_API_KEY --config services/booking/wrangler.toml
+npx wrangler secret put RESEND_API_KEY --config services/booking/wrangler.toml
 npx wrangler secret put EMAIL_FROM    --config services/booking/wrangler.toml
+npx wrangler secret put EMAIL_MODE    --config services/booking/wrangler.toml  # live
 ```
 
 | Variable | Used by | Purpose |
@@ -226,7 +227,7 @@ npx wrangler secret put EMAIL_FROM    --config services/booking/wrangler.toml
 | `DRIVE_SERVICE_URL`, `DONOR_SERVICE_URL`, `BOOKING_SERVICE_URL` | all Workers | Server-to-server bases; use the real Worker URLs, not `localhost` |
 | `CORS_ORIGINS` | all Workers | Must match the deployed frontend origin |
 | `TURNSTILE_SECRET`, `TURNSTILE_SITE_KEY` | Donor / frontend | Bot check; site key is public and placed in `window.BDO` |
-| `BREVO_API_KEY`, `EMAIL_FROM`, `EMAIL_MODE` | Booking | Transactional email; without a key the code logs to `EMAIL_DEV_LOG` |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_MODE` (Brevo fallback: `BREVO_API_KEY`) | Booking | Transactional email; without a key the code logs to `EMAIL_DEV_LOG` |
 | `REPORTS_BUCKET` | Drive | Only used on Floci/S3; leave unset on Workers |
 | `DONATION_INTERVAL_DAYS` | Donor | Default 56; optional override |
 | `REMINDER_DAYS_AHEAD` | config only | Defined in `shared/config.js` but **not yet used** by reminder code (which always uses tomorrow) |
@@ -264,7 +265,7 @@ Deploy:
 npx wrangler deploy --config frontend/wrangler.toml   # -> <PAGES_OR_WORKERS_SITE_URL>
 ```
 
-If using classic Cloudflare Pages instead, create a Pages project named `bdo-organizer` and upload `frontend/`; then set the same `window.BDO` values through the Pages build output. The report uses the live public URL **https://bdo-organizer.tourmaline-headphones.workers.dev**, never `localhost`.
+If using classic Cloudflare Pages instead, create a Pages project named `bdo-organizer` and upload `frontend/`; then set the same `window.BDO` values through the Pages build output. The report uses the live public URL **https://bdo-organizer.polarized-tarsal.workers.dev**, never `localhost`.
 
 ### 3.6 Cloudflare cron status — checklist
 
@@ -317,5 +318,5 @@ Wake Neon before a demo: free compute may pause after inactivity and the first r
 - [x] Floci deployment completes with `ALL CHECKS PASSED`; local and Floci smoke are 22/22 each; `npm test` is 53/53.
 - [ ] Real per-student commits, PRs, `v1.0` tag and code zip are still not done; CODEOWNERS retain placeholders until real GitHub usernames are known. (Repository and branches exist.)
 - [ ] Demo video and Cloudflare/Neon approval screenshot are still not done. Public frontend browser screenshots **are** captured in `evidence/PUBLIC-E2E-*.png`.
-- [ ] Real Turnstile/Brevo keys are not configured; no live email or bot-check evidence has been captured.
+- [x] Resend live email is configured as a Worker secret with `EMAIL_MODE=live`; controlled delivery is evidenced in `evidence/RESEND-LIVE-EMAIL.txt`. [ ] Real Turnstile keys are not configured; bot-check evidence is still pending.
 - [x] Public Cloudflare + Neon deployment executed and verified (`evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`). Manual Nominatim evidence is in `evidence/DRV-05-live-geocode.txt`.

@@ -139,8 +139,9 @@ async function verify() {
     putSecret(service, 'BOOKING_SERVICE_URL', workerUrls.booking);
     putSecret(service, 'TURNSTILE_SECRET', process.env.TURNSTILE_SECRET);
     putSecret(service, 'BREVO_API_KEY', process.env.BREVO_API_KEY);
+    putSecret(service, 'RESEND_API_KEY', process.env.RESEND_API_KEY);
     putSecret(service, 'EMAIL_FROM', process.env.EMAIL_FROM);
-    putSecret(service, 'EMAIL_MODE', process.env.BREVO_API_KEY ? 'live' : 'log');
+    putSecret(service, 'EMAIL_MODE', (process.env.RESEND_API_KEY || process.env.BREVO_API_KEY) ? 'live' : 'log');
   }
 
   console.log('==> Deploying static site to Cloudflare Pages');

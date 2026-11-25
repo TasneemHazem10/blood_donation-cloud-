@@ -12,7 +12,7 @@ The system deliberately uses **one controller set per service that runs unchange
 | Floci / AWS emulator | Static site in bucket `bdo-web` | Three Lambda functions behind one API Gateway HTTP API (verified: `http://4f503503dd.execute-api.localhost.floci.io:4566`) | 9 DynamoDB tables + S3 report bucket + CloudWatch Logs | Lab-style AWS evidence on a local emulator |
 | Cloudflare + Neon (public deployment) | Cloudflare Workers static-asset site `bdo-organizer` | Three Cloudflare Workers `bdo-drive`, `bdo-donor`, `bdo-booking` | Neon Postgres tables (`id text`, `data jsonb`) | Public HTTPS URL without a payment card |
 
-> **Status note:** the Cloudflare/Neon path is the **live public deployment** at **https://bdo-organizer.tourmaline-headphones.workers.dev**. The Worker entry points, `wrangler.toml` files and `infra/db/schema.sql` are deployed; all three Workers set `global_fetch_strictly_public` so cross-service public HTTP calls work. The Booking Worker has `[triggers] crons = ["0 6 * * *"]` and a `scheduled()` handler, and the Booking Lambda handles EventBridge `aws.events`. The temporary preview account allows 0 cron triggers, so the manual reminder route was verified instead. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`. See `docs/deployment.md`.
+> **Status note:** the Cloudflare/Neon path is the **live public deployment** at **https://bdo-organizer.polarized-tarsal.workers.dev**. The Worker entry points, `wrangler.toml` files and `infra/db/schema.sql` are deployed; all three Workers set `global_fetch_strictly_public`, and cross-service calls use Cloudflare service bindings (`env.BOOKING`, `env.DRIVE`, `env.DONOR`) instead of public `workers.dev` fetches. The Booking Worker has `[triggers] crons = ["0 6 * * *"]` and a `scheduled()` handler, and the Booking Lambda handles EventBridge `aws.events`. The temporary preview account allows 0 cron triggers, so the manual reminder route was verified instead. Resend live email is enabled. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt` and `evidence/RESEND-LIVE-EMAIL.txt`. See `docs/deployment.md`.
 
 ## 2. Three-layer view
 
@@ -44,7 +44,7 @@ flowchart TB
   subgraph E["External services / integrations"]
     GEO["OpenStreetMap Nominatim<br/>venue -> lat/lon"]
     TURN["Cloudflare Turnstile<br/>register + login bot check"]
-    BREVO["Brevo SMTP API<br/>confirmation / cancellation / reminders"]
+    RESEND["Resend email API<br/>confirmation / cancellation / reminders"]
   end
 
   SPA -->|"GET/POST/PUT/PATCH/DELETE<br/>Bearer JWT"| A
@@ -55,7 +55,7 @@ flowchart TB
   DRV --> GEO
   DRV --> S3R
   DON --> TURN
-  BOK --> BREVO
+  BOK --> RESEND
   DRV --> NEON
   DON --> NEON
   BOK --> NEON
@@ -110,7 +110,7 @@ sequenceDiagram
   participant B as Booking service
   participant V as Drive service
   participant N as Donor service
-  participant E as Brevo / email log
+  participant E as Resend / email log
   participant DB as Data layer
 
   D->>V: GET /api/drives/:id (slots + available counts)
@@ -142,8 +142,8 @@ All server-to-server calls use `shared/serviceClient.js`: a 10 s timeout, `x-int
 | Drive data | SQLite `bdo_drives`, `bdo_slots`, `bdo_reports`, `bdo_geocodes` | DynamoDB same names; S3 `bdo-drive-reports` for reports | Neon tables from `infra/db/schema.sql` |
 | Donor data | SQLite `bdo_users`, `bdo_donors`, `bdo_donations` | DynamoDB same names | Neon tables |
 | Booking data | SQLite `bdo_bookings`, `bdo_reminders` | DynamoDB same names; EventBridge rule `bdo-daily-reminders` + `aws.events` branch in `lambda.js` | Neon tables; Cron Trigger `0 6 * * *` + `scheduled()` in `worker.js` |
-| Cross-service base URLs | `http://localhost:300x` | `$API_URL` from `infra/.state` via API Gateway | Worker URLs (must be set as secrets/vars; placeholders in docs) |
-| Secrets | environment variables / `.env` (git-ignored) | generated `infra/secrets.env`, Lambda environment variables / Turnstile & Brevo env vars | `wrangler secret put` (never in `wrangler.toml`) |
+| Cross-service base URLs | `http://localhost:300x` | `$API_URL` from `infra/.state` via API Gateway | Worker service bindings (`BOOKING`, `DRIVE`, `DONOR`); public Worker URLs remain as fallback vars/secrets |
+| Secrets | environment variables / `.env` (git-ignored) | generated `infra/secrets.env`, Lambda environment variables / Turnstile & Resend env vars | `wrangler secret put` or `--secrets-file` (never in `wrangler.toml`) |
 
 ## 6. External services
 
@@ -151,8 +151,8 @@ All server-to-server calls use `shared/serviceClient.js`: a 10 s timeout, `x-int
 | --- | --- | --- | --- |
 | OpenStreetMap Nominatim | `shared/external/geo.js`, called by Drive create/update and `?near=` search | No key; User-Agent header; results cached in `bdo_geocodes` | Geocoding failure is logged and returns `null`; create still succeeds with `lat/lon = null`; `?near=` returns `502` |
 | Cloudflare Turnstile | `shared/external/turnstile.js`, called by Donor register/login; widget in `frontend/js/views/auth.js` | `TURNSTILE_SECRET` server-side, `TURNSTILE_SITE_KEY` client-side | Without a secret the service returns `{mode:'development'}`; with a secret, missing token → `401`, upstream failure → `502` |
-| Brevo | `shared/external/email.js`, used by Booking confirmation, cancellation and reminders | `BREVO_API_KEY`, `EMAIL_FROM`, `EMAIL_MODE` | In `TEST_MODE`, `EMAIL_MODE=log`, or without a key, logs `EMAIL_DEV_LOG` and stores a `dev-log` row; real failures are stored as `failed` and never crash the bookings flow |
+| Resend (Brevo fallback) | `shared/external/email.js`, used by Booking confirmation, cancellation and reminders | `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_MODE`; Brevo is used only when no Resend key is set (`BREVO_API_KEY`) | In `TEST_MODE`, `EMAIL_MODE=log`, or without a key, logs `EMAIL_DEV_LOG` and stores a `dev-log` row; real failures are stored as `failed` and never crash the bookings flow |
 
-Live Nominatim evidence **is** captured in `evidence/DRV-05-live-geocode.txt` (drive creation with real coordinates, cached rows and `?near=` result); `TEST_MODE` is used only in automated tests and smoke runs.
+Live Nominatim evidence **is** captured in `evidence/DRV-05-live-geocode.txt` (drive creation with real coordinates, cached rows and `?near=` result); live Resend evidence is in `evidence/RESEND-LIVE-EMAIL.txt`; `TEST_MODE` is used only in automated tests and smoke runs.
 
 All credentials are environment variables / Worker secrets. No real URL, key or token is stored in the repository.

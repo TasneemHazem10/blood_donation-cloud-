@@ -6,4 +6,4 @@ compatibility_flags = ["global_fetch_strictly_public"]
 [vars]
 DATA_DRIVER = "neon"
 NODE_ENV = "production"
-CORS_ORIGINS = "https://bdo-organizer.pages.dev"
+CORS_ORIGINS = "https://bdo-organizer.polarized-tarsal.workers.dev"

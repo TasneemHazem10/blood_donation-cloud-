@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { setupTestEnv, futureDate, daysAgoText } = require('./helpers/env');
+const { setupTestEnv, futureDate } = require('./helpers/env');
 const { check } = require('./helpers/harness');
 
 setupTestEnv('rules');
@@ -109,19 +109,21 @@ check('SR10', 'eligibility enforces age and weight boundaries', () => {
 });
 
 check('SR11', 'eligibility enforces the 56-day interval and deferral', () => {
-  const last = daysAgoText(40);
-  const short = eligibility.evaluate({ birthYear: 1990, weightKg: 65, lastDonationDate: last }, '2026-11-24');
+  const asOf = '2026-11-24';
+  const last = eligibility.addDays(asOf, -40);
+  const short = eligibility.evaluate({ birthYear: 1990, weightKg: 65, lastDonationDate: last }, asOf);
   assert.equal(short.eligible, false);
   assert.match(short.reason, /At least 56 days/);
   assert.equal(short.nextEligibleDate, eligibility.addDays(last, 56));
 
-  const ok = eligibility.evaluate({ birthYear: 1990, weightKg: 65, lastDonationDate: daysAgoText(56) }, '2026-11-24');
+  const ok = eligibility.evaluate({ birthYear: 1990, weightKg: 65, lastDonationDate: eligibility.addDays(asOf, -56) }, asOf);
   assert.equal(ok.eligible, true);
 
-  const deferred = eligibility.evaluate({ birthYear: 1990, weightKg: 65, deferredUntil: futureDate(10) }, '2026-11-24');
+  const deferredUntil = eligibility.addDays(asOf, 10);
+  const deferred = eligibility.evaluate({ birthYear: 1990, weightKg: 65, deferredUntil }, asOf);
   assert.equal(deferred.eligible, false);
   assert.match(deferred.reason, /deferred until/);
-  assert.equal(deferred.nextEligibleDate, futureDate(10));
+  assert.equal(deferred.nextEligibleDate, deferredUntil);
 });
 
 check('SR12', 'eligibility rejects invalid dates and missing profiles', () => {

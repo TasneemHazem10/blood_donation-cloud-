@@ -147,29 +147,29 @@ See [`docs/deployment.md`](docs/deployment.md) for screenshots to capture and th
 
 ## 6. Deployment option B — Cloudflare Workers + Neon (public URL)
 
-This is the public deployment required by the final-phase plan. It uses three Cloudflare Workers, a Cloudflare Workers static-asset site for the SPA, and Neon Postgres. Optional Turnstile and Brevo keys can be added later.
+This is the public deployment required by the final-phase plan. It uses three Cloudflare Workers, a Cloudflare Workers static-asset site for the SPA, and Neon Postgres. Resend live email is configured for the public Booking Worker; Turnstile keys remain optional.
 
 ### Live public deployment (verified 25 Nov 2026)
 
 | Component | Public URL |
 |---|---|
-| Website | **https://bdo-organizer.tourmaline-headphones.workers.dev** |
-| Drive API | https://bdo-drive.tourmaline-headphones.workers.dev |
-| Donor/Eligibility API | https://bdo-donor.tourmaline-headphones.workers.dev |
-| Booking/Reminder API | https://bdo-booking.tourmaline-headphones.workers.dev |
+| Website | **https://bdo-organizer.polarized-tarsal.workers.dev** |
+| Drive API | https://bdo-drive.polarized-tarsal.workers.dev |
+| Donor/Eligibility API | https://bdo-donor.polarized-tarsal.workers.dev |
+| Booking/Reminder API | https://bdo-booking.polarized-tarsal.workers.dev |
 
-Neon project `cloud` (`rapid-shadow-53692379`), branch `production`, has `infra/db/schema.sql` applied. All three health endpoints return 200 with the website origin in `Access-Control-Allow-Origin`, the deployed `frontend/js/config.js` points at the three public Worker URLs, and `npm run smoke` passes **22/22** against the public deployment. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`.
+The supplied Neon database has `infra/db/schema.sql` applied. All three health endpoints return 200 with the website origin in `Access-Control-Allow-Origin`, the deployed `frontend/js/config.js` points at the three public Worker URLs, and `npm run smoke` passes **22/22** against the public deployment. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`.
 
-The three `services/*/wrangler.toml` files set `compatibility_flags = ["global_fetch_strictly_public"]`. Without it Cloudflare returns error `1042` when the Booking Worker calls the Drive/Donor Workers through their public `workers.dev` URLs.
+The three `services/*/wrangler.toml` files set `compatibility_flags = ["global_fetch_strictly_public"]`. Without it Cloudflare returns error `1042` when one Worker calls another through a public `workers.dev` URL. Cross-service calls now use Cloudflare service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking), which also avoids a `522` from Worker-to-Worker public fetches on the preview account.
 
-This deployment uses a **temporary Cloudflare preview account**. Claim it with the link supplied out-of-band (never commit the claim token) or redeploy to a permanent account. The temporary free plan allows **0 cron triggers**, so the `0 6 * * *` trigger declared in `services/booking/wrangler.toml` could not be attached there; the organizer Reminder button and `POST /internal/reminders/daily` were verified instead. Turnstile/Brevo keys were not configured, so `EMAIL_MODE=log` is intentional.
+This deployment uses a **temporary Cloudflare preview account**. Claim it with the link supplied out-of-band (never commit the claim token) or redeploy to a permanent account. The temporary free plan allows **0 cron triggers**, so the `0 6 * * *` trigger declared in `services/booking/wrangler.toml` could not be attached there; the organizer Reminder button and `POST /internal/reminders/daily` were verified instead. Turnstile remains unconfigured; Resend live email is enabled with `EMAIL_MODE=live` and a git-ignored API key.
 
 ### One-time manual setup
 
 1. Log in: `npx wrangler login`.
 2. Create a Neon project and copy its connection string.
 3. Apply the schema from `infra/db/schema.sql` in the Neon SQL editor (the deploy script also applies it).
-4. Create a Turnstile widget and a Brevo API key if you want real bot protection and real email. Leave them empty to stay in log mode.
+4. Create a Turnstile widget if you want real bot protection. Resend live email is already configured for the public deployment; leave the key empty locally to stay in log mode.
 5. Decide the three Worker names and their public URLs, e.g. `https://bdo-drive.<account>.workers.dev`.
 
 ### Deploy
@@ -185,7 +185,9 @@ export BOOKING_WORKER_URL='https://bdo-booking.<account>.workers.dev'
 export FRONTEND_URL='https://bdo-organizer.<account>.workers.dev'   # optional; detected after deploy
 export TURNSTILE_SECRET=''                              # optional
 export TURNSTILE_SITE_KEY=''                            # optional, public site key
-export BREVO_API_KEY=''                                 # optional
+export RESEND_API_KEY=''                                 # optional locally; set in Worker secrets for live email
+export EMAIL_FROM='Blood Donation Drive <onboarding@resend.dev>'
+export EMAIL_MODE='log'                                  # use 'live' only with a real key
 
 npm run deploy:cloudflare
 ```
@@ -197,10 +199,10 @@ On Windows PowerShell, use `$env:NAME='value'` instead of `export NAME='value'`.
 Verify manually in a browser and from a phone:
 
 ```text
-https://bdo-organizer.tourmaline-headphones.workers.dev
-https://bdo-drive.tourmaline-headphones.workers.dev/api/health/drive
-https://bdo-donor.tourmaline-headphones.workers.dev/api/health/donor
-https://bdo-booking.tourmaline-headphones.workers.dev/api/health/booking
+https://bdo-organizer.polarized-tarsal.workers.dev
+https://bdo-drive.polarized-tarsal.workers.dev/api/health/drive
+https://bdo-donor.polarized-tarsal.workers.dev/api/health/donor
+https://bdo-booking.polarized-tarsal.workers.dev/api/health/booking
 ```
 
 Never commit `.dev.vars`, `.env`, `infra/secrets.env` or real credentials.
@@ -220,7 +222,7 @@ Each student must make real commits to their own service. The generated code is 
 
 Evidence to collect for the report:
 
-- Public health/config/database evidence is in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots are `evidence/PUBLIC-E2E-home.png` and `evidence/PUBLIC-E2E-drives.png`. Local browser evidence is in `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` (headless Chrome at `http://localhost:8090`).
+- Public health/config/database evidence is in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots are `evidence/PUBLIC-E2E-home.png` and `evidence/PUBLIC-E2E-drives.png`. Live Resend delivery evidence is in `evidence/RESEND-LIVE-EMAIL.txt`. Local browser evidence is in `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` (headless Chrome at `http://localhost:8090`).
 - Postman or `curl` request/response pairs for each endpoint.
 - Neon SQL editor screenshots after create/update/delete.
 - `npm test` output plus rows in [`docs/testing.md`](docs/testing.md).
@@ -246,9 +248,10 @@ git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0
 | 403 on organizer endpoints | Register with `role: 'organizer'` and the correct invite code. |
 | Worker returns 500 after deployment | Check `npx wrangler tail <worker-name>`; usually a missing Worker secret (`DATABASE_URL`, `JWT_SECRET`, `INTERNAL_KEY`). |
 | Cross-service call returns `404 error code: 1042` on Workers | Add `compatibility_flags = ["global_fetch_strictly_public"]` to the calling Worker's `wrangler.toml` and redeploy. This is already set on all three services. |
+| Cross-service call returns `522` on a preview account | Use Cloudflare service bindings instead of public `workers.dev` fetches. Drive binds `BOOKING`; Booking binds `DRIVE` and `DONOR`. This is already configured. |
 | Cron Trigger missing on temporary preview account | Temporary free accounts have a limit of 0 cron triggers; use the manual Reminder button or a permanent Cloudflare account. |
 | Neon first request is slow | Free compute wakes from pause; open the app once before the demo. |
-| Reminder emails do not arrive | Without `BREVO_API_KEY` the service stays in log mode and records messages in `/api/reminders`. |
+| Reminder emails do not arrive | Without `RESEND_API_KEY` or `BREVO_API_KEY` the service stays in log mode. With Resend's free testing mode, only the account owner's address receives mail; other recipients are stored as `failed` rows. See `evidence/RESEND-LIVE-EMAIL.txt`. |
 
 ---
 

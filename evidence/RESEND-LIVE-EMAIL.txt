@@ -1,0 +1,26 @@
+RESEND LIVE EMAIL EVIDENCE (public Cloudflare Workers + Neon)
+Captured: 2026-11-25
+
+Configuration
+  emailProvider: resend (preferred over Brevo when RESEND_API_KEY is set)
+  EMAIL_MODE: live
+  EMAIL_FROM: Blood Donation Drive <onboarding@resend.dev>
+  Key source: Worker secret only (never committed, never shown in this file)
+
+Controlled delivery check
+  A single organizer/driver/booking journey was run with the Resend account
+  owner's own address as the donor recipient. Resend's free testing mode only
+  permits delivery to that address; all other demo recipients are rejected with
+  HTTP 403 and recorded as `failed` rows rather than crashing the booking flow.
+
+  POST /api/reminders/send -> HTTP 200
+  {"date":"<drive date>","eligible":1,"sent":1,"skipped":0,"failed":0,"emailMode":"live"}
+
+  bdo_reminders rows for the authorised recipient (recipient redacted):
+  type=confirmation status=sent provider=resend messageId=01a212a2-f97d-7c3b-90e7-672b3b730d77
+  type=reminder     status=sent provider=resend messageId=01a212a2-fbfb-7add-8dfd-9d5f84945c59
+
+  Unauthorised demo recipients (random @demo.org addresses used by the repeatable
+  smoke script) produce status=failed with a redacted Resend 403 message. This is
+  expected in Resend testing mode and is documented in docs/limitations.md.
+  No API key, recipient address or JWT is included in this evidence file.

@@ -5,6 +5,7 @@ import configModule from '../../shared/config.js';
 import contextModule from '../../shared/context.js';
 import neonModule from '../../shared/store/neon.js';
 import routerModule from '../../shared/router.js';
+import serviceClientModule from '../../shared/serviceClient.js';
 import remindersModule from './controllers/reminders.js';
 import rulesModule from './services/bookingRules.js';
 import routes from './routes.js';
@@ -13,6 +14,7 @@ const { setEnv } = configModule;
 const { setStore } = contextModule;
 const { createNeonStore } = neonModule;
 const { workerFetch } = routerModule;
+const { setServiceBindings } = serviceClientModule;
 const { sendForDate } = remindersModule;
 const { tomorrow } = rulesModule;
 
@@ -20,6 +22,10 @@ export default {
   async fetch(request, env) {
     setEnv(env);
     setStore(createNeonStore(env.DATABASE_URL));
+    setServiceBindings({
+      ...(env.DRIVE ? { drive: env.DRIVE } : {}),
+      ...(env.DONOR ? { donor: env.DONOR } : {})
+    });
     return workerFetch(routes, request);
   },
   // Cloudflare Cron Trigger: 06:00 UTC daily. The same function backs the

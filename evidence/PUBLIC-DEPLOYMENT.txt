@@ -1,19 +1,19 @@
 PUBLIC CLOUDFLARE WORKERS + NEON DEPLOYMENT EVIDENCE
-capturedAt: 2026-11-24T23:23:25.266Z
-frontend: https://bdo-organizer.tourmaline-headphones.workers.dev
-drive:    https://bdo-drive.tourmaline-headphones.workers.dev
-donor:    https://bdo-donor.tourmaline-headphones.workers.dev
-booking:  https://bdo-booking.tourmaline-headphones.workers.dev
+capturedAt: 2026-11-25T12:18:10.796Z
+frontend: https://bdo-organizer.polarized-tarsal.workers.dev
+drive:    https://bdo-drive.polarized-tarsal.workers.dev
+donor:    https://bdo-donor.polarized-tarsal.workers.dev
+booking:  https://bdo-booking.polarized-tarsal.workers.dev
 
 --- HEALTH CHECKS (live public HTTPS) ---
-drive: HTTP 200 {"status":"ok","service":"drive","time":"2026-11-24T23:23:25.761Z"}
-  access-control-allow-origin: https://bdo-organizer.tourmaline-headphones.workers.dev
+drive: HTTP 200 {"status":"ok","service":"drive","time":"2026-11-25T12:18:11.021Z"}
+  access-control-allow-origin: https://bdo-organizer.polarized-tarsal.workers.dev
   cache-control: no-store
-donor: HTTP 200 {"status":"ok","service":"donor","time":"2026-11-24T23:23:25.948Z"}
-  access-control-allow-origin: https://bdo-organizer.tourmaline-headphones.workers.dev
+donor: HTTP 200 {"status":"ok","service":"donor","time":"2026-11-25T12:18:11.202Z"}
+  access-control-allow-origin: https://bdo-organizer.polarized-tarsal.workers.dev
   cache-control: no-store
-booking: HTTP 200 {"status":"ok","service":"booking","time":"2026-11-24T23:23:26.110Z"}
-  access-control-allow-origin: https://bdo-organizer.tourmaline-headphones.workers.dev
+booking: HTTP 200 {"status":"ok","service":"booking","time":"2026-11-25T12:18:11.421Z"}
+  access-control-allow-origin: https://bdo-organizer.polarized-tarsal.workers.dev
   cache-control: no-store
 
 --- FRONTEND CONFIG (public static asset, no secrets) ---
@@ -24,22 +24,32 @@ js/config.js: HTTP 200
   booking URL present: true
 
 --- NEON POSTGRES ROWS (counts only; no secrets or JWTs) ---
-  bdo_drives: 6 rows
-  bdo_slots: 6 rows
-  bdo_donors: 13 rows
-  bdo_users: 13 rows
-  bdo_bookings: 1 rows
-  bdo_reminders: 2 rows
-  bdo_donations: 1 rows
-  bdo_reports: 1 rows
+  bdo_drives: 9 rows
+  bdo_slots: 9 rows
+  bdo_donors: 18 rows
+  bdo_users: 18 rows
+  bdo_bookings: 9 rows
+  bdo_reminders: 14 rows
+  bdo_donations: 4 rows
+  bdo_reports: 3 rows
   bdo_geocodes: 0 rows
-  latest booking id: drv_7f186c1f-44b8-4615-bf5b-8af66f304d64__donor-mwvblayc@demo.org
+  latest booking id: drv_3203b69e-e03f-45c4-bc2d-087a2328d613__donor-mww39win@demo.org
   latest booking status: attended
-  latest booking createdAt: 2026-11-24T23:22:50.147Z
+  latest booking createdAt: 2026-11-25T12:17:47.039Z
 
 --- CROSS-SERVICE CONFIGURATION NOTE ---
-All three Workers set compatibility_flags = ["global_fetch_strictly_public"] so
-Worker-to-Worker calls to the other public workers.dev URLs are allowed.
+All three Workers set compatibility_flags = ["global_fetch_strictly_public"].
+Worker-to-Worker calls use Cloudflare service bindings (env.BOOKING in Drive;
+env.DRIVE and env.DONOR in Booking), which avoids the 522 returned when a
+preview-account Worker fetched another Worker through its public workers.dev URL.
 Temporary free account limit: 0 cron triggers, so the 06:00 trigger declared in
 services/booking/wrangler.toml could not be attached to this preview account.
 The manual organizer Reminder button and POST /internal/reminders/daily were verified.
+
+--- DATABASE AND EMAIL ---
+All three Workers use the supplied Neon pooled connection string as a secret.
+infra/db/schema.sql was applied (9 bdo_* JSONB tables).
+Booking uses Resend live email (EMAIL_MODE=live) with a git-ignored API key.
+A controlled send to the Resend account owner returned status=sent, provider=resend;
+see evidence/RESEND-LIVE-EMAIL.txt. Random @demo.org smoke recipients are rejected
+by Resend testing mode and are stored as failed rows without breaking the flow.

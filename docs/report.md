@@ -24,7 +24,7 @@ BloodLink is a web application that lets an organizer publish a drive with time 
 | --- | --- |
 | Three communicating services (Drive, Donor/Eligibility, Booking/Reminder) | Real medical records, payments, mobile app |
 | Seat reservation with no overbooking; cancel/check-in state machine | Full production identity verification or GDPR compliance |
-| Nominatim geocoding, Turnstile bot check, Brevo email (configurable) | Ambulance dispatch or hospital inventory integration |
+| Nominatim geocoding, Turnstile bot check, Resend email (Brevo fallback) | Ambulance dispatch or hospital inventory integration |
 | Local SQLite, Floci/AWS emulator and public Cloudflare Workers + Neon deployments | Guarantees of clinical accuracy; the eligibility rules are a class-project model |
 
 ---
@@ -50,7 +50,7 @@ flowchart TB
   subgraph External["External services"]
     NOM[OpenStreetMap Nominatim]
     TURN[Cloudflare Turnstile]
-    BREVO[Brevo email API]
+    RESEND[Resend email API]
     CRON[Cron / EventBridge]
   end
   UI --> DRIVE & DONOR & BOOKING
@@ -60,7 +60,7 @@ flowchart TB
   DONOR -->|active bookings| BOOKING
   DRIVE --> NOM
   DONOR --> TURN
-  BOOKING --> BREVO
+  BOOKING --> RESEND
   CRON --> BOOKING
   DRIVE & DONOR & BOOKING --> SQLITE
   DRIVE & DONOR & BOOKING --> DDB
@@ -84,7 +84,7 @@ flowchart TB
 | --- | --- | --- | --- |
 | Drive Management | Habiba | validate/geocode and publish a drive; enforce slot overlap and capacity; build turnout reports from live booking stats; atomic seat reserve/release | Booking (stats, cancellations), Nominatim, S3 |
 | Donor and Eligibility | Tasneem | hash passwords and issue JWTs; evaluate 18–65/≥50 kg/56-day/deferral rules; check Turnstile and login rate limit; block deletion when bookings are active | Booking (active bookings) |
-| Booking and Reminder | Hala | reserve-then-insert booking with compensation; CAS cancel/check-in; idempotent reminder runs for button/cron/EventBridge; email audit log | Drive (lookup, reserve/release), Donor (eligibility, donations), Brevo |
+| Booking and Reminder | Hala | reserve-then-insert booking with compensation; CAS cancel/check-in; idempotent reminder runs for button/cron/EventBridge; email audit log | Drive (lookup, reserve/release), Donor (eligibility, donations), Resend (Brevo fallback) |
 
 Full endpoint tables, payloads, validation rules and status codes are in [`docs/api.md`](api.md) and [`docs/openapi.yaml`](openapi.yaml). Representative examples:
 
@@ -132,11 +132,11 @@ Nine logical tables (`bdo_users`, `bdo_donors`, `bdo_donations`, `bdo_drives`, `
 | --- | --- | --- | --- |
 | OpenStreetMap Nominatim | Drive creation geocodes `venue, city`; `GET /api/drives?near=&radius=` | Real coordinates, distance search and map labels | Public HTTPS endpoint with a descriptive `User-Agent`; results cached in `bdo_geocodes`; no key needed. Live evidence: `evidence/DRV-05-live-geocode.txt` |
 | Cloudflare Turnstile | Donor registration/login | Bot protection before an account is created or a token is issued | `TURNSTILE_SITE_KEY` injected into the SPA config; `TURNSTILE_SECRET` sent only to the Worker/Lambda via env/secret store. `TEST_MODE=1` bypasses it locally; with a secret configured and no token the API returns `401` (`evidence/DON-16-turnstile-missing-token.txt`) |
-| Brevo email API | Booking confirmations, cancellations and daily reminders | Real email delivery in production | `BREVO_API_KEY` and `EMAIL_FROM` from env; without them `EMAIL_MODE=log` writes the message to the audit table and service log |
+| Resend email API | Booking confirmations, cancellations and daily reminders | Real email delivery in production | `RESEND_API_KEY` (Brevo fallback: `BREVO_API_KEY`) and `EMAIL_FROM` as Worker secrets with `EMAIL_MODE=live`; without a key or with `EMAIL_MODE=log`, messages are written to the audit table and service log. Live evidence: `evidence/RESEND-LIVE-EMAIL.txt` |
 | AWS S3 | Drive report CSV snapshots and the website bucket on Floci | Durable report artefacts and static hosting | `REPORTS_BUCKET` from Floci deployment state; path-style S3 client for the emulator |
 | Neon Postgres + Cloudflare cron | Data layer and 06:00 daily reminder trigger on the public deployment | Managed serverless database and scheduled job | `DATABASE_URL` and Worker secrets; Cron Trigger declared in `services/booking/wrangler.toml` but not attachable on the temporary preview account (0 cron triggers). Manual Reminder button and `POST /internal/reminders/daily` verified. |
 
-Every credential is read from an environment variable by `shared/config.js`; no secret appears in code, `frontend/js/config.js`, the repository or the evidence files. Turnstile and Brevo real-key runs are **PENDING** because no live keys were supplied.
+Every credential is read from an environment variable by `shared/config.js`; no secret appears in code, `frontend/js/config.js`, the repository or the evidence files. The Resend live-key run is verified; the Turnstile real-key run remains **PENDING**.
 
 ---
 
@@ -144,9 +144,9 @@ Every credential is read from an environment variable by `shared/config.js`; no 
 
 **Verified — Floci / AWS emulator (service-based, containers).** Docker Compose starts Floci; `npm run zip:all` creates three Lambda zips; `bash infra/deploy-all.sh` creates nine DynamoDB tables, three Lambdas (`bdo-drive-service`, `bdo-donor-service`, `bdo-booking-service`), two S3 buckets (`bdo-drive-reports`, `bdo-web`), IAM roles/policies, CloudWatch log groups and an EventBridge rule. API Gateway base URL: `http://4f503503dd.execute-api.localhost.floci.io:4566`. Website: `http://localhost:4566/bdo-web/index.html`. Health checks, drive list and 22/22 smoke steps passed with `ALL CHECKS PASSED`. Resource details and screenshots checklist: [`docs/deployment.md`](deployment.md).
 
-**Verified — public Cloudflare Workers + Neon (serverless/PaaS).** The deployed website is **https://bdo-organizer.tourmaline-headphones.workers.dev** and the three service URLs are `https://bdo-drive.tourmaline-headphones.workers.dev`, `https://bdo-donor.tourmaline-headphones.workers.dev` and `https://bdo-booking.tourmaline-headphones.workers.dev`. The SPA is served as Cloudflare Workers static assets; Neon project `cloud` / branch `production` stores the nine JSONB tables. All three health endpoints return 200 with the correct CORS origin, the deployed `frontend/js/config.js` points to the public Workers, and `npm run smoke` returns **22/22 PASS** against the public deployment. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`.
+**Verified — public Cloudflare Workers + Neon (serverless/PaaS).** The deployed website is **https://bdo-organizer.polarized-tarsal.workers.dev** and the three service URLs are `https://bdo-drive.polarized-tarsal.workers.dev`, `https://bdo-donor.polarized-tarsal.workers.dev` and `https://bdo-booking.polarized-tarsal.workers.dev`. The SPA is served as Cloudflare Workers static assets; the supplied Neon database stores the nine JSONB tables. All three health endpoints return 200 with the correct CORS origin, the deployed `frontend/js/config.js` points to the public Workers, and `npm run smoke` returns **22/22 PASS** against the public deployment. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`, `evidence/RESEND-LIVE-EMAIL.txt`.
 
-All three Workers set `compatibility_flags = ["global_fetch_strictly_public"]` because Cloudflare otherwise returns `404 error code: 1042` when one Worker fetches another Worker's public `workers.dev` URL. Secrets (`DATABASE_URL`, `JWT_SECRET`, `INTERNAL_KEY`, invite) were supplied only as Worker secrets from git-ignored files. The deployment uses a temporary preview account: claim it with the one-time link supplied outside the repository, or redeploy to a permanent account. That preview plan allows 0 cron triggers, so the 06:00 Cron Trigger declared in `services/booking/wrangler.toml` could not be attached; the manual Reminder button and internal daily route were verified.
+All three Workers set `compatibility_flags = ["global_fetch_strictly_public"]` because Cloudflare otherwise returns `404 error code: 1042` when one Worker fetches another Worker's public `workers.dev` URL. Cross-service calls use Cloudflare service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking), which also avoids a `522` error from Worker-to-Worker public fetches on the preview account. Secrets (`DATABASE_URL`, `JWT_SECRET`, `INTERNAL_KEY`, invite, `RESEND_API_KEY`) were supplied only as Worker secrets from git-ignored files; the Booking Worker runs with `EMAIL_MODE=live`. The deployment uses a temporary preview account: claim it with the one-time link supplied outside the repository, or redeploy to a permanent account. That preview plan allows 0 cron triggers, so the 06:00 Cron Trigger declared in `services/booking/wrangler.toml` could not be attached; the manual Reminder button and internal daily route were verified.
 
 ---
 
@@ -164,13 +164,13 @@ To fill this section: create the repository, push `main`, make one real commit p
 
 ## 8. Demo video
 
-**PENDING.** A ≤5-minute video must be recorded from the **public Cloudflare URL** (not localhost, not Floci), with the link set to "anyone with the link can view". Required order: full end-to-end journey first (organizer creates drive and slot → donor registers/books → reminder log → check-in → report), then one short segment per student showing their service's functions. The public URL to record is **https://bdo-organizer.tourmaline-headphones.workers.dev**. No video link was available at the time of writing; insert it here before submission: **[VIDEO_URL]**.
+**PENDING.** A ≤5-minute video must be recorded from the **public Cloudflare URL** (not localhost, not Floci), with the link set to "anyone with the link can view". Required order: full end-to-end journey first (organizer creates drive and slot → donor registers/books → reminder log → check-in → report), then one short segment per student showing their service's functions. The public URL to record is **https://bdo-organizer.polarized-tarsal.workers.dev**. No video link was available at the time of writing; insert it here before submission: **[VIDEO_URL]**.
 
 ---
 
 ## 9. Testing
 
-`npm test` → **53 tests, 53 pass, 0 fail** (six test files). Local smoke → **22/22 PASS**. Floci smoke through API Gateway → **22/22 PASS**, report `storage:"s3"`. Public Cloudflare + Neon smoke → **22/22 PASS** with report `storage:"database"`. Evidence files: `evidence/DRV-05-live-geocode.txt`, `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt`, `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`. Full case-by-case table with actual results and evidence links: [`docs/testing.md`](testing.md).
+`npm test` → **53 tests, 53 pass, 0 fail** (six test files). Local smoke → **22/22 PASS**. Floci smoke through API Gateway → **22/22 PASS**, report `storage:"s3"`. Public Cloudflare + Neon smoke → **22/22 PASS** with report `storage:"database"`. Evidence files: `evidence/DRV-05-live-geocode.txt`, `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt`, `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`, `evidence/RESEND-LIVE-EMAIL.txt`. Full case-by-case table with actual results and evidence links: [`docs/testing.md`](testing.md).
 
 | Case group | Covered | Result |
 | --- | --- | --- |
@@ -197,7 +197,7 @@ Open items with reason and proposed improvement are tracked in [`docs/limitation
 | In-memory login rate limiter and in-process reminder state | Simplifies three-runtime compatibility | Add Cloudflare WAF rate limiting and a shared durable store |
 | DynamoDB/Neon `search()` uses scan/filter rather than indexes | Document-model simplicity | Add GSIs/columns and pagination |
 | Recovery window if the process crashes between reserve and insert | Compensating release cannot run after a hard crash | Make reservation idempotent with a TTL hold |
-| Real Turnstile widget token and live Brevo send not exercised | No live keys | Add test keys as secrets and capture redacted evidence |
+| Real Turnstile widget token not exercised | No Turnstile keys; Resend live send is verified | Add a Turnstile test key as a secret and capture redacted evidence |
 
 ---
 

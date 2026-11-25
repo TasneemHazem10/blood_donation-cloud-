@@ -226,27 +226,27 @@ npm run smoke                                         # expect 22/22 PASS
 The public deployment is already live (see `FINALIZATION_README.md` section 3):
 
 ```text
-Website: https://bdo-organizer.tourmaline-headphones.workers.dev
-Drive:   https://bdo-drive.tourmaline-headphones.workers.dev
-Donor:   https://bdo-donor.tourmaline-headphones.workers.dev
-Booking: https://bdo-booking.tourmaline-headphones.workers.dev
+Website: https://bdo-organizer.polarized-tarsal.workers.dev
+Drive:   https://bdo-drive.polarized-tarsal.workers.dev
+Donor:   https://bdo-donor.polarized-tarsal.workers.dev
+Booking: https://bdo-booking.polarized-tarsal.workers.dev
 ```
 
 ```powershell
-curl.exe -i https://bdo-drive.tourmaline-headphones.workers.dev/api/health/drive
-curl.exe -i https://bdo-donor.tourmaline-headphones.workers.dev/api/health/donor
-curl.exe -i https://bdo-booking.tourmaline-headphones.workers.dev/api/health/booking
+curl.exe -i https://bdo-drive.polarized-tarsal.workers.dev/api/health/drive
+curl.exe -i https://bdo-donor.polarized-tarsal.workers.dev/api/health/donor
+curl.exe -i https://bdo-booking.polarized-tarsal.workers.dev/api/health/booking
 ```
 
-Expected: HTTP 200 for all three, with `Access-Control-Allow-Origin: https://bdo-organizer.tourmaline-headphones.workers.dev`.
+Expected: HTTP 200 for all three, with `Access-Control-Allow-Origin: https://bdo-organizer.polarized-tarsal.workers.dev`.
 
 Run the whole automated public journey (already captured in `evidence/PUBLIC-SMOKE.txt`):
 
 ```powershell
 $env:BDO_API_URL=''
-$env:BDO_DRIVE_URL='https://bdo-drive.tourmaline-headphones.workers.dev'
-$env:BDO_DONOR_URL='https://bdo-donor.tourmaline-headphones.workers.dev'
-$env:BDO_BOOKING_URL='https://bdo-booking.tourmaline-headphones.workers.dev'
+$env:BDO_DRIVE_URL='https://bdo-drive.polarized-tarsal.workers.dev'
+$env:BDO_DONOR_URL='https://bdo-donor.polarized-tarsal.workers.dev'
+$env:BDO_BOOKING_URL='https://bdo-booking.polarized-tarsal.workers.dev'
 $env:ORGANIZER_INVITE='blood2026'
 npm run smoke
 ```
@@ -268,7 +268,7 @@ link supplied outside the repository, or the public URLs may expire.
 | Terminal output | `npm test`, both smoke runs, `bash infra/check.sh`, `npm run deploy:cloudflare` |
 | GitHub | PR links, merge commit hashes, `v1.0` tag |
 
-Redact JWTs, `INTERNAL_KEY`, `DATABASE_URL`, `BREVO_API_KEY`, `TURNSTILE_SECRET` and invite codes
+Redact JWTs, `INTERNAL_KEY`, `DATABASE_URL`, `RESEND_API_KEY`/`BREVO_API_KEY`, `TURNSTILE_SECRET` and invite codes
 from every screenshot before adding it to the report.
 
 ---

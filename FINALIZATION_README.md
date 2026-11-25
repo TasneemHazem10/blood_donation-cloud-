@@ -17,7 +17,7 @@ below is claimed as done until you perform it.
 | Branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` | ✅ pushed (currently identical to `main`) |
 | `npm test` | ✅ 53 tests, 53 pass, 0 fail |
 | Local smoke / Floci smoke | ✅ 22/22 each; Floci `ALL CHECKS PASSED` |
-| Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.tourmaline-headphones.workers.dev`; public smoke 22/22 |
+| Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.polarized-tarsal.workers.dev`; public smoke 22/22 |
 | Evidence files | ✅ `evidence/DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png` |
 | Report draft | ✅ `docs/report.md` sections 1–10 + appendix |
 | Three 9-item statements | ✅ `docs/individual-statements.md` |
@@ -45,9 +45,9 @@ REPO_PUBLIC=yes/no          # if no, invite the module leader as collaborator
 VIDEO_URL=                  # Google Drive / YouTube link, "anyone with the link can view"
 ```
 
-Optional future upgrades: real Turnstile test keys and a Brevo API key. Without them the app
-explicitly stays in development/log mode, and the missing-token branch is already evidenced;
-the report states that the real-key paths are untested.
+Optional future upgrade: real Turnstile test keys. The missing-token branch is already
+evidenced. The public deployment uses Resend live email with a git-ignored API key; local
+development still uses `TEST_MODE=1` and `EMAIL_MODE=log`.
 
 ---
 
@@ -104,25 +104,25 @@ Why: the brief requires a **public URL**. Floci is an emulator and cannot be the
 
 | Component | Live public URL |
 |---|---|
-| Website (Cloudflare Workers static assets) | **https://bdo-organizer.tourmaline-headphones.workers.dev** |
-| Drive Worker | https://bdo-drive.tourmaline-headphones.workers.dev |
-| Donor Worker | https://bdo-donor.tourmaline-headphones.workers.dev |
-| Booking Worker | https://bdo-booking.tourmaline-headphones.workers.dev |
+| Website (Cloudflare Workers static assets) | **https://bdo-organizer.polarized-tarsal.workers.dev** |
+| Drive Worker | https://bdo-drive.polarized-tarsal.workers.dev |
+| Donor Worker | https://bdo-donor.polarized-tarsal.workers.dev |
+| Booking Worker | https://bdo-booking.polarized-tarsal.workers.dev |
 
 Verified 25 Nov 2026:
 
 * All three health endpoints return HTTP 200 with `Access-Control-Allow-Origin` set to the website URL.
 * The deployed `frontend/js/config.js` contains all three public Worker URLs.
-* Neon project `cloud` / branch `production` has the nine `bdo_*` tables and the rows created by the live smoke run.
+* The supplied Neon database has the nine `bdo_*` tables and the rows created by the live smoke run.
 * `npm run smoke` against the public Workers: **22/22 PASS**, including booking, duplicate rejection, reminders, check-in, donation record, report and 400/401/403/404/409 errors.
 * Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`.
 
 Important deployment notes:
 
 * The Workers use a **temporary Cloudflare preview account**. Claim it with the one-time link that was supplied outside the repository, or redeploy to your own account with `wrangler deploy --temporary`/`npx wrangler login`. If the claim expires, redeploy and update the public URLs in `frontend/js/config.js` and the docs.
-* All three `wrangler.toml` files include `compatibility_flags = ["global_fetch_strictly_public"]`; without it Booking → Drive/Donor calls fail with Cloudflare error `1042`.
+* All three `wrangler.toml` files include `compatibility_flags = ["global_fetch_strictly_public"]`; without it Booking → Drive/Donor calls fail with Cloudflare error `1042`. Cross-service calls now use Cloudflare service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking), which also avoids a `522` from Worker-to-Worker public fetches on the preview account.
 * The temporary free account has **0 cron triggers**, so the declared `0 6 * * *` trigger could not be attached. The manual Reminder button and `POST /internal/reminders/daily` are verified; attach the trigger on a permanent account if required.
-* Turnstile and Brevo keys were intentionally left empty; `EMAIL_MODE=log` records messages in Neon. No secret, claim token or invite code is stored in the repository.
+* Turnstile remains unconfigured. Resend live email is enabled for the public Booking Worker with `EMAIL_MODE=live`; the key is a Worker secret and `evidence/RESEND-LIVE-EMAIL.txt` records a controlled `sent` result. No secret, claim token or invite code is stored in the repository.
 
 ---
 
@@ -145,15 +145,15 @@ Important deployment notes:
 | ID | What to do | Why |
 |---|---|---|
 | DON-16 live | Add a real Turnstile test key as a Worker secret, load the SPA, complete the widget, register once | The missing-token branch is evidenced; real widget validation is not |
-| Email live | Set `BREVO_API_KEY` and `EMAIL_FROM`, send **one** controlled reminder, capture `status:"sent"` and the provider message id | Log mode is currently the only email evidence |
+| Email live | ✅ Done with `RESEND_API_KEY`, `EMAIL_FROM` and `EMAIL_MODE=live`; controlled send captured in `evidence/RESEND-LIVE-EMAIL.txt` (`status:sent`, `provider:resend`, message id) | — |
 | E2E-06 | DONE — full smoke flow run with `BDO_API_URL=''` and the three public `BDO_*_URL` values; output in `evidence/PUBLIC-SMOKE.txt` | Public deployed integration is required |
 | Per-endpoint evidence | One `curl -i` or Postman request/response per row of `docs/api.md` | Report sections 3 and 9 |
 | Frontend screenshots | `#/organizer` (create form, slots, Bookings, Emails, Report tabs), `#/register`, `#/profile`, `#/bookings` | Individual statements, items 2 |
 | Error evidence | `400`, `401`, `403`, `404`, `409`, `429`, `502` responses | Brief explicitly asks for invalid cases |
 | `npm test` + smoke output | Save terminal output/screenshots | Report section 9 |
 
-**Redaction rule:** never include a real JWT, `JWT_SECRET`, `INTERNAL_KEY`, `BREVO_API_KEY`,
-`TURNSTILE_SECRET`, `DATABASE_URL` or invite code in a screenshot, log or report.
+**Redaction rule:** never include a real JWT, `JWT_SECRET`, `INTERNAL_KEY`, `RESEND_API_KEY`,
+`BREVO_API_KEY`, `TURNSTILE_SECRET`, `DATABASE_URL` or invite code in a screenshot, log or report.
 
 ---
 

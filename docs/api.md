@@ -10,7 +10,7 @@ This document lists **every route defined in the three `routes.js` files**. It i
 | --- | --- | --- | --- |
 | Local (`npm run dev`) | `http://localhost:3001` | `http://localhost:3002` | `http://localhost:3003` |
 | Floci | one API Gateway base URL from `infra/.state` (`API_URL`), routes dispatch by path | same | same |
-| Cloudflare Workers | `<DRIVE_WORKER_URL>` (placeholder) | `<DONOR_WORKER_URL>` | `<BOOKING_WORKER_URL>` |
+| Cloudflare Workers | `https://bdo-drive.polarized-tarsal.workers.dev` | `https://bdo-donor.polarized-tarsal.workers.dev` | `https://bdo-booking.polarized-tarsal.workers.dev` |
 
 On Floci all three services share one front door; on Workers and locally each service has its own base URL configured through `DRIVE_SERVICE_URL`, `DONOR_SERVICE_URL`, `BOOKING_SERVICE_URL` (or `window.BDO.services` in the browser).
 
@@ -95,7 +95,7 @@ On Floci all three services share one front door; on Workers and locally each se
 | `GET /api/bookings` | Auth, role `organizer` | Query `driveId` (required) | `idParam` on `driveId`; role check; Drive internal GET and `drive.organizerId === user.id`; search by `driveId`, sort by `startTime` | `200 { count, bookings:[...] }` | `401`, `403`, `400`, `502` |
 | `POST /api/bookings/:id/cancel` | Auth | Path `id`; body `{}` | Donor owner or organizer of the drive; status must be `confirmed`; compare-and-set to `cancelled`; release seat via Drive; cancellation email recorded | `200 { booking, message:"Booking cancelled and seat released." }` | `401`, `403`, `404` bad id, `409` not found/already cancelled/status changed, `502` |
 | `PATCH /api/bookings/:id/check-in` | Auth, role `organizer` | Path `id`; body `{ outcome }` = `attended` \| `no_show` | Outcome enum; organizer must own the drive; status ∈ `confirmed/attended/no_show`; repeat same outcome is idempotent; `attended` first calls Donor `POST /internal/donations` with `donationId = booking.id`; then CAS booking status | `200 { booking, message:... }` | `401`, `403`, `400`, `404` bad id, `409` cancelled/changed, `502` |
-| `POST /api/reminders/send` | Auth, role `organizer` | Body or query `date?` (default tomorrow) | Organizer role; date must be `YYYY-MM-DD`; selects `confirmed` bookings for that date owned by this organizer; idempotency key `bookingId#reminder#date`; records `bdo_reminders` rows and sends via Brevo/log | `200 { date, eligible, sent, skipped, failed, emailMode }` | `401`, `403`, `400` |
+| `POST /api/reminders/send` | Auth, role `organizer` | Body or query `date?` (default tomorrow) | Organizer role; date must be `YYYY-MM-DD`; selects `confirmed` bookings for that date owned by this organizer; idempotency key `bookingId#reminder#date`; records `bdo_reminders` rows and sends via Resend (Brevo fallback)/log | `200 { date, eligible, sent, skipped, failed, emailMode }` | `401`, `403`, `400` |
 | `GET /api/reminders` | Auth, role `organizer` | — | Filters reminder log by `organizerId`, sorts by `scheduledFor` descending | `200 { count, reminders:[...] }` | `401`, `403` |
 | `GET /internal/drives/:id/stats` | Internal | Path `id` | `idParam`; counts bookings for drive by status | `200 { booked, attended, noShow, cancelled, total }` (`booked` = `confirmed` count) | `401`, `400` |
 | `POST /internal/drives/:id/cancellations` | Internal | Path `id`; body `{}` | CAS each `confirmed` booking to `cancelled` with `cancellationReason:"drive_cancelled"`; release each seat; send cancellation email; errors logged per booking, not fatal | `200 { driveId, cancelled, released }` | `401`, `400` |
@@ -127,7 +127,7 @@ On Floci all three services share one front door; on Workers and locally each se
 
 ## 6. Examples
 
-Replace `<...>` placeholders with real local/dev values. `TEST_MODE=1` and `EMAIL_MODE=log` are set by `npm run dev`, so no Turnstile token or Brevo key is needed locally.
+Replace `<...>` placeholders with real local/dev values. `TEST_MODE=1` and `EMAIL_MODE=log` are set by `npm run dev`, so no Turnstile token or Resend key is needed locally.
 
 ### 6.1 Health and public drive search
 

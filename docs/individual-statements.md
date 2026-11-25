@@ -7,7 +7,7 @@ Shared evidence placeholders used below:
 * `[REPO_URL]` — **https://github.com/TasneemHazem10/blood_donation-cloud-.git** (`main` and the three feature branches are pushed; PRs/tag still pending).
 * `[PR_LINK_*]`, `[COMMIT_HASH_*]` — real PR/commit links per contribution.
 * `[EVIDENCE: ...]` — screenshot, copied request/response, SQL row image or log excerpt.
-* `[DEPLOYED_URL]` — **https://bdo-organizer.tourmaline-headphones.workers.dev** (public Cloudflare URL, not localhost).
+* `[DEPLOYED_URL]` — **https://bdo-organizer.polarized-tarsal.workers.dev** (public Cloudflare URL, not localhost).
 
 ---
 
@@ -108,7 +108,7 @@ Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_HABIBA_RULES], [COMMIT
 1. **SQLite "database is locked" while three local services initialised the same file.** Fixed by enabling WAL, a 5-second busy timeout and `synchronous=NORMAL` in `shared/store/sqlite.js` (see `docs/notes.md`).
 2. **Port 8080 was already taken on the development machine.** Moved the website to **http://localhost:8090** in `infra/scripts/dev-all.js` and updated `CORS_ORIGINS`; the three APIs stayed on 3001/3002/3003. The seed script's final message was also corrected to 8090.
 3. **Floci geocode cache table.** Added `bdo_geocodes` to `infra/services/drive.sh`; the verified deployment creates nine DynamoDB tables and the cache is available. DRV-05 now has a live `?near=` capture outside `TEST_MODE=1` in `evidence/DRV-05-live-geocode.txt`.
-4. **CORS origin differs per deployment** (8090 local, 4566 Floci, Workers static-asset URL on Cloudflare). Handled with the `CORS_ORIGINS` env var; on the public deployment it is set to `https://bdo-organizer.tourmaline-headphones.workers.dev` and verified by the `Access-Control-Allow-Origin` health-check header in `evidence/PUBLIC-DEPLOYMENT.txt`.
+4. **CORS origin differs per deployment** (8090 local, 4566 Floci, Workers static-asset URL on Cloudflare). Handled with the `CORS_ORIGINS` env var; on the public deployment it is set to `https://bdo-organizer.polarized-tarsal.workers.dev` and verified by the `Access-Control-Allow-Origin` health-check header in `evidence/PUBLIC-DEPLOYMENT.txt`.
 
 Evidence: `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` show the SPA running on **http://localhost:8090** with `3/3 services online`; the pre-fix WAL error log screenshot is still a placeholder.
 
@@ -276,7 +276,7 @@ Verified by `npm test` (53/53), local + Floci smoke (22/22 each, report `storage
 * Calls Drive internal GET / reserve / release for every booking and cancellation.
 * Calls Donor internal eligibility before booking and donation recording on `attended` check-in.
 * Is called by Drive for report stats and drive cancellation, and by Donor for active-bookings before account deletion.
-* Sends email through `shared/external/email.js` (Brevo in live mode, `EMAIL_MODE=log` locally) and exposes the same reminder logic to the organizer button, the internal route and both cloud schedulers.
+* Sends email through `shared/external/email.js` (Resend in live mode, Brevo fallback, `EMAIL_MODE=log` locally) and exposes the same reminder logic to the organizer button, the internal route and both cloud schedulers.
 
 Verified by local + Floci smoke for booking, check-in, donation recording and report stats; capture placeholder remains `[EVIDENCE: cross-service call log lines with request and response for one booking and one check-in]`.
 
@@ -286,7 +286,7 @@ Verified by local + Floci smoke for booking, check-in, donation recording and re
 2. **Reserve-then-insert with compensating release** so two concurrent donors cannot take the last seat; the seat counter itself is an atomic conditional database update.
 3. **CAS for status changes** (`expected:{status:'confirmed'}`) so cancel and check-in cannot overwrite each other.
 4. **Idempotency key for reminders** (`bookingId#reminder#date`) so repeated cron/button runs do not resend.
-5. **Every email attempt is a database row**, giving the report and the UI an auditable log even when no Brevo key exists.
+5. **Every email attempt is a database row**, giving the report and the UI an auditable log even when no Resend key exists.
 
 Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_HALA_RESEAT], [COMMIT_HASH_HALA_REMINDERS]]`.
 
@@ -295,7 +295,7 @@ Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_HALA_RESEAT], [COMMIT_
 1. **Concurrent booking / overbooking risk.** Solved with guarded `reserveSeat()` writes (SQLite/Neon conditional update; DynamoDB read-compare-update with retry) and compensation if the booking insert throws. Residual crash-window documented in `docs/limitations.md`.
 2. **Duplicate reminder emails.** Solved with the deterministic reminder id and a `get()` check before sending; the second run reports `skipped`.
 3. **Scheduling on two clouds.** Floci's EventBridge event shape was solved with a `source === 'aws.events'` branch in `lambda.js`; Cloudflare declares a Cron Trigger `0 6 * * *` and exports `scheduled()` in `worker.js`. Both call `sendForDate()`; the organizer Emails button remains a manual fallback. On the public deployment the organizer button and `POST /internal/reminders/daily` were verified (`evidence/PUBLIC-SMOKE.txt`), but the temporary free account allows 0 cron triggers, so the scheduled execution itself could not be attached there.
-4. **Free-tier email limits.** `EMAIL_MODE=log` locally avoids real sends; any live test must use a Brevo test key and only one controlled reminder run, with keys redacted from evidence.
+4. **Free-tier email limits.** `EMAIL_MODE=log` locally avoids real sends; one controlled reminder run was performed with a git-ignored Resend key on the public Worker (`evidence/RESEND-LIVE-EMAIL.txt`). Resend testing mode delivers only to the account owner's address.
 5. **Booking id separator.** `bookingKey()` uses `driveId__donorId`; `idParam()` accepts the `__` separator, and local + Floci smoke verify cancel/check-in with real ids.
 
 Verified by local, Floci and public smoke: 1 reminder sent + 1 skipped on the second run in each; the public manual reminder route and organizer button are evidenced in `evidence/PUBLIC-SMOKE.txt`. The Cloudflare Cron Trigger itself could not be attached to the temporary preview account (0 cron triggers), so only its code path and manual equivalent are verified.

@@ -63,9 +63,9 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 ### Entry 9 — Turnstile and email without local credentials
 
-* **Problem:** no real Cloudflare Turnstile or Brevo keys exist locally, and secrets must never be committed.
-* **Fix:** `verifyTurnstile()` returns development mode when no secret is configured and test mode when `TEST_MODE=1`; with a secret it posts to `siteverify` and maps failures to `401`/`502`. `sendEmail()` logs `EMAIL_DEV_LOG` and returns `{status:'dev-log'}` in test/log/no-key mode; Brevo is called only with `BREVO_API_KEY` and `EMAIL_MODE` not set to `log`. Every attempt is stored in `bdo_reminders`.
-* **Status:** dev behaviour implemented and verified (confirmation and reminder rows); real-key evidence pending (L6).
+* **Problem:** no real Cloudflare Turnstile or Resend keys exist locally, and secrets must never be committed.
+* **Fix:** `verifyTurnstile()` returns development mode when no secret is configured and test mode when `TEST_MODE=1`; with a secret it posts to `siteverify` and maps failures to `401`/`502`. `sendEmail()` logs `EMAIL_DEV_LOG` and returns `{status:'dev-log'}` in test/log/no-key mode; Resend is preferred when `RESEND_API_KEY` is set (Brevo is the fallback via `BREVO_API_KEY`), and only when `EMAIL_MODE` is not `log`. Every attempt is stored in `bdo_reminders`.
+* **Status:** dev behaviour verified locally; public Booking Worker uses Resend with `EMAIL_MODE=live` and a controlled `sent` result is captured in `evidence/RESEND-LIVE-EMAIL.txt`. Real Turnstile key evidence remains pending (L6).
 
 ### Entry 10 — Bundling for Lambda and Workers
 
@@ -77,7 +77,7 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 * **Problem:** the SPA needs the API base URLs at load time; secrets cannot be in the browser.
 * **Fix:** `frontend/js/api.js` reads `window.BDO.services` from `frontend/js/config.js`. `infra/frontend.sh` rewrites it for Floci and uploads it to `s3://bdo-web/js/config.js`. `infra/scripts/configure-cloudflare.js` generates the same file for Cloudflare from env vars via `npm run deploy:cloudflare`; no secrets are written to the browser config.
-* **Status:** Floci verified (`http://localhost:4566/bdo-web/index.html` → 200); Cloudflare verified at `https://bdo-organizer.tourmaline-headphones.workers.dev/js/config.js`, which contains the three public Worker URLs (see `evidence/PUBLIC-DEPLOYMENT.txt`).
+* **Status:** Floci verified (`http://localhost:4566/bdo-web/index.html` → 200); Cloudflare verified at `https://bdo-organizer.polarized-tarsal.workers.dev/js/config.js`, which contains the three public Worker URLs (see `evidence/PUBLIC-DEPLOYMENT.txt`).
 
 ### Entry 12 — Reminder scheduling differs per deployment
 
@@ -87,7 +87,7 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 ### Entry 13 — Testability features
 
-* **Problem:** tests must not call real Nominatim, Turnstile or Brevo, and date-dependent rules need stable inputs.
+* **Problem:** tests must not call real Nominatim, Turnstile or email providers, and date-dependent rules need stable inputs.
 * **Fix:** `TEST_MODE=1` makes geocoding deterministic and skips Turnstile; `EMAIL_MODE=log` records email rows locally; `shared/context.js` exposes `setClock()`; `shared/serviceClient.js` exposes `setServiceFetch()`. `npm test` uses `--test-concurrency=1` to avoid SQLite contention.
 * **Status:** 53 tests written under `tests/`; `npm test` → 53 pass, 0 fail. `scripts/smoke.mjs` creates fresh accounts each run and accepts `BDO_API_URL` for Floci; both local and Floci runs are 22/22 PASS.
 
@@ -150,3 +150,15 @@ These are the build notes and difficulties encountered while assembling the rebu
 * **Problem:** all three health endpoints returned 500 after the first deploy; `wrangler tail` reported `DATABASE_URL is required for the Neon data layer`. The generated `.data/worker-secrets.json` had been written before `infra/secrets.env` was created, so `DATABASE_URL` was empty.
 * **Fix:** regenerated the secrets file from the git-ignored `infra/secrets.env` (pooled Neon connection string) and redeployed the three Workers.
 * **Status:** fixed; all three health checks returned 200 afterwards.
+
+### Entry 24 — Worker-to-Worker public fetch returned 522 on the preview account
+
+* **Problem:** after redeploying to a new temporary Cloudflare account, the Drive report endpoint (`GET /api/drives/:id/report`) returned `522` although its internal Booking stats call returned 200 when called directly from Node. `wrangler tail` showed the Drive request became a 522 response with no exception in the caller.
+* **Fix:** replaced public `workers.dev` fetches with Cloudflare service bindings. `shared/serviceClient.js` gained `setServiceBindings()` and uses `binding.fetch()` when a binding exists; Drive binds `BOOKING`, Booking binds `DRIVE` and `DONOR`. Local and Floci modes still use HTTP.
+* **Status:** fixed; the public smoke passes 22/22 including the report step. Documented in `docs/architecture.md`, `docs/deployment.md` and `evidence/PUBLIC-DEPLOYMENT.txt`.
+
+### Entry 25 — Live transactional email with Resend
+
+* **Problem:** reminder emails were only evidenced in `EMAIL_MODE=log`; a real provider send was required, and Brevo was the original default.
+* **Fix:** `shared/external/email.js` now prefers Resend (`https://api.resend.com/emails`) when `RESEND_API_KEY` is set, keeps Brevo as a fallback, and still logs in test/log/no-key modes. `infra/scripts/configure-cloudflare.js` sets `EMAIL_MODE=live` when a key exists. Secrets stay in git-ignored files.
+* **Status:** verified from the public Booking Worker: a controlled send to the Resend account owner returned `status=sent`, `provider=resend`, with two message ids recorded in `evidence/RESEND-LIVE-EMAIL.txt`. Resend free testing mode rejects other recipients with 403; those failures are stored as `failed` rows and do not break the flow. Also fixed a date-dependent `SR11` assertion by using fixed dates relative to `2026-11-24`.
