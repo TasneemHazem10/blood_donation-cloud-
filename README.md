@@ -222,7 +222,7 @@ Each student must make real commits to their own service. The generated code is 
 
 Evidence to collect for the report:
 
-- Public health/config/database evidence is in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots are `evidence/PUBLIC-E2E-home.png` and `evidence/PUBLIC-E2E-drives.png`. Live Resend delivery evidence is in `evidence/RESEND-LIVE-EMAIL.txt`. Local browser evidence is in `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` (headless Chrome at `http://localhost:8090`).
+- Floci deployment + smoke evidence is in `evidence/FLOCI-SMOKE.txt`; public health/config/database evidence is in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots are `evidence/PUBLIC-E2E-home.png` and `evidence/PUBLIC-E2E-drives.png`. Live Resend delivery evidence is in `evidence/RESEND-LIVE-EMAIL.txt`. Local browser evidence is in `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` (headless Chrome at `http://localhost:8090`).
 - Postman or `curl` request/response pairs for each endpoint.
 - Neon SQL editor screenshots after create/update/delete.
 - `npm test` output plus rows in [`docs/testing.md`](docs/testing.md).

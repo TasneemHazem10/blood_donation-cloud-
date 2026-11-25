@@ -1,0 +1,43 @@
+﻿FLOCI DEPLOYMENT + SMOKE EVIDENCE
+Captured: 2026-11-25 (redeploy with current code and git-ignored secrets.env)
+API Gateway: http://4f503503dd.execute-api.localhost.floci.io:4566
+Website: http://localhost:4566/bdo-web/index.html
+
+Redeploy: bash infra/deploy-all.sh -> ALL CHECKS PASSED (3 Lambdas, 9 DynamoDB tables, 2 S3 buckets, website/dashboard 200)
+Smoke command: BDO_API_URL=<gateway> ORGANIZER_INVITE=<dev invite> npm run smoke
+Note: invite/code/JWT values are redacted by the smoke script output; no secret is stored here.
+
+
+> bdo-organizer@1.0.0 smoke
+> node scripts/smoke.mjs
+
+PASS  donor POST /api/auth/register -> 201
+PASS  donor POST /api/auth/register -> 201
+PASS  donor POST /api/auth/login -> 200
+PASS  donor POST /api/auth/login -> 200
+PASS  donor GET /api/auth/me -> 200
+PASS  drive POST /api/drives -> 201
+PASS  drive POST /api/drives/drv_779243e3-cb6f-455d-9e04-f110142566d9/slots -> 201
+PASS  donor GET /api/donors/me/eligibility?date=2026-12-01 -> 200
+  eligibility: true You meet the basic donation criteria
+PASS  booking POST /api/bookings -> 201
+  booking id: drv_779243e3-cb6f-455d-9e04-f110142566d9__donor-mww41iys@demo.org
+PASS  booking POST /api/bookings -> 409
+PASS  booking GET /api/bookings/mine -> 200
+PASS  booking GET /api/bookings?driveId=drv_779243e3-cb6f-455d-9e04-f110142566d9 -> 200
+PASS  booking POST /api/reminders/send -> 200
+PASS  booking POST /api/reminders/send -> 200
+  reminders: 1 sent, 1 skipped on repeat
+PASS  booking PATCH /api/bookings/drv_779243e3-cb6f-455d-9e04-f110142566d9__donor-mww41iys%40demo.org/check-in -> 200
+  check-in: attended Attendance and donation recorded.
+PASS  donor GET /api/donors/me/donations -> 200
+  donations: 1
+PASS  drive GET /api/drives/drv_779243e3-cb6f-455d-9e04-f110142566d9/report -> 200
+  report: {"booked":1,"attended":1,"turnout":100,"storage":"s3"}
+PASS  booking GET /api/bookings/mine -> 401
+PASS  booking GET /api/bookings?driveId=drv_779243e3-cb6f-455d-9e04-f110142566d9 -> 403
+PASS  drive GET /api/drives/does_not_exist -> 404
+PASS  drive POST /api/drives -> 400
+PASS  donor POST /api/auth/register -> 409
+
+SMOKE: 22/22 PASS

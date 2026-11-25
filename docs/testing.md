@@ -35,7 +35,7 @@ bash infra/deploy-all.sh          # Git Bash; ends with ALL CHECKS PASSED
 | Evidence capture | `npm run evidence:capture` wrote `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt` and `evidence/DRV-05-live-geocode.txt` |
 | Local smoke | **22/22 PASS**; report `{"booked":1,"attended":1,"turnout":100,"storage":"database"}` |
 | Floci deployment | **ALL CHECKS PASSED**: drive/donor/booking health, drive list, website object, Floci dashboard |
-| Floci smoke | **22/22 PASS** through the API Gateway; report `storage:"s3"` |
+| Floci smoke | **22/22 PASS** through the API Gateway; report `storage:"s3"`; captured in `evidence/FLOCI-SMOKE.txt` |
 
 `booking.id` uses the `__` separator (for example `drv_abc__donor@example.org`); cancel and check-in accept it. The former `::` validator blocker (L23) is resolved and covered by BK06/BK07 and the smoke flow.
 

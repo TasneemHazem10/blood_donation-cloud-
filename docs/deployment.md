@@ -22,7 +22,7 @@ All URLs, account ids and credentials below are **placeholders**. Never commit a
 * `npm test`: **53 tests, 53 pass, 0 fail**, across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`.
 * Local smoke `scripts/smoke.mjs`: **22 PASS** (register/login, drive and slot, eligibility, booking `201`, duplicate `409`, reminders 1 sent + 1 skipped, check-in `attended`, donation recorded, report `{booked:1,attended:1,turnout:100,storage:"database"}`, and 401/403/404/400/409 cases). It creates fresh accounts each run and supports `BDO_API_URL` for Floci.
 * `bash infra/deploy-all.sh` now completes: **ALL CHECKS PASSED** — drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200. API Gateway: `http://4f503503dd.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets.
-* Floci smoke through the API Gateway: **22 PASS**, report `storage:"s3"`.
+* Floci smoke through the API Gateway: **22 PASS**, report `storage:"s3"` (`evidence/FLOCI-SMOKE.txt`).
 * Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in work.
 * Public Cloudflare/Neon deployment is **live**: `https://bdo-organizer.polarized-tarsal.workers.dev`; public smoke **22 PASS**, health/CORS/config/Neon evidence in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots in `evidence/PUBLIC-E2E-*.png`. Only the demo video still needs to be recorded.
 

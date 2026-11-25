@@ -162,3 +162,9 @@ These are the build notes and difficulties encountered while assembling the rebu
 * **Problem:** reminder emails were only evidenced in `EMAIL_MODE=log`; a real provider send was required, and Brevo was the original default.
 * **Fix:** `shared/external/email.js` now prefers Resend (`https://api.resend.com/emails`) when `RESEND_API_KEY` is set, keeps Brevo as a fallback, and still logs in test/log/no-key modes. `infra/scripts/configure-cloudflare.js` sets `EMAIL_MODE=live` when a key exists. Secrets stay in git-ignored files.
 * **Status:** verified from the public Booking Worker: a controlled send to the Resend account owner returned `status=sent`, `provider=resend`, with two message ids recorded in `evidence/RESEND-LIVE-EMAIL.txt`. Resend free testing mode rejects other recipients with 403; those failures are stored as `failed` rows and do not break the flow. Also fixed a date-dependent `SR11` assertion by using fixed dates relative to `2026-11-24`.
+
+### Entry 26 — Floci config drift after secrets.env was updated
+
+* **Problem:** a Floci smoke run failed at organizer registration with `409 "Organizer invite code is not correct"` because the deployed Donor Lambda still had the older random invite `blood-a38385`, while the git-ignored `infra/secrets.env` had been updated to `blood2026`. In addition, `source infra/secrets.env` failed in Git Bash because the file had a UTF-8 BOM and unquoted values containing `<` and `&`.
+* **Fix:** normalised the git-ignored secrets file (BOM removed, every value quoted), rebuilt the Lambda zips from current code, and redeployed with `bash infra/deploy-all.sh` so all three Lambdas use the current secrets.
+* **Status:** redeploy ends with `ALL CHECKS PASSED`; the Floci smoke is **22/22 PASS** with report `storage:"s3"`, captured in `evidence/FLOCI-SMOKE.txt`. This was configuration drift, not a code defect.
