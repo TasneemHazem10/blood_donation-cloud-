@@ -2,7 +2,44 @@
 
 A complete three-service cloud application for organizing blood donation drives. Organizers publish drives and time slots, donors register and book a seat, and the Booking service checks eligibility, reserves seats atomically, records attendance and sends confirmations/reminders.
 
-This README is the **manual setup and deployment guide**. A deeper implementation walkthrough is in [`FULL_PROJECT_GUIDE.md`](FULL_PROJECT_GUIDE.md). Report material is in [`docs/`](docs/). The hand-over checklist of everything still needed from the team (GitHub identities, Cloudflare/Neon secrets, video, evidence and final tagging) is in [`FINALIZATION_README.md`](FINALIZATION_README.md). The exact step-by-step manual testing procedure (API journey, error cases, UI, database, smoke runs and deployed checks) is in [`TESTING_STEPS.md`](TESTING_STEPS.md). To repeat the work with the same tools and command order as the Cloud Labs PDFs (Docker/Git Bash/AWS CLI `floci` profile/Postman/http-server/k6/Vercel-style headers/Neon), use [`docs/lab-guide.md`](docs/lab-guide.md).
+This README is the **project overview, requirements map and deployment guide**. A deeper implementation walkthrough is in [`FULL_PROJECT_GUIDE.md`](FULL_PROJECT_GUIDE.md). Report material is in [`docs/`](docs/). The hand-over checklist for the remaining human artefacts (student Git identities/PRs and the demo video) is in [`FINALIZATION_README.md`](FINALIZATION_README.md). The dedicated, start-to-finish testing playbook is [`TESTING_README.md`](TESTING_README.md); the longer PowerShell walkthrough is [`TESTING_STEPS.md`](TESTING_STEPS.md). To repeat the work with the same tools and command order as the Cloud Labs PDFs (Docker/Git Bash/AWS CLI `floci` profile/Postman/REST Client/k6/Vercel-style headers/Neon), use [`docs/lab-guide.md`](docs/lab-guide.md).
+
+---
+
+## Implementation against the brief
+
+This table states **what was actually built**, where it lives, and how it was verified. Nothing is marked DONE unless a file or live endpoint exists.
+
+| Requirement | What was made | Where / how to verify | Status |
+|---|---|---|---|
+| Three coherent, student-owned services | Drive Management, Donor/Eligibility and Booking/Reminder, each with its own routes, controllers, rules, tests, Lambda, Worker and lab script | `services/drive/`, `services/donor/`, `services/booking/`; ownership in `.github/CODEOWNERS` and `docs/individual-statements.md` | DONE (code); real per-student commits/PRs still PENDING |
+| More than CRUD per service | Geocoding, slot overlap/capacity, live report from booking stats, eligibility rules, 56-day recheck, atomic booking/cancel/check-in, idempotent reminders | `services/*/controllers/`, `services/*/services/`, `docs/report.md` §3 | DONE |
+| Cross-service calls | Drive → Booking (stats/cancellations); Booking → Drive (lookup/reserve/release) and Donor (eligibility/donations); Donor → Booking (active bookings) with `x-internal-key`; Cloudflare service bindings in production | `shared/serviceClient.js`, `services/*/wrangler.toml`, `docs/architecture.md` | DONE |
+| Validation, correct status codes, shared error envelope | Common 400/401/403/404/409/413/429/502 envelope, malformed JWT and URL handling, body-size limits | `shared/http.js`, `shared/validation.js`, `tests/runtime-robustness.test.js`, `docs/api.md` | DONE |
+| Database CRUD/search in all three services | Nine `bdo_*` entities with create/read/update/delete/search; SQLite for local/tests, DynamoDB for Floci, Neon Postgres JSONB for public | `shared/store/`, `infra/db/schema.sql`, `docs/data-model.md` | DONE |
+| Real external APIs | Nominatim geocoding + `?near=` radius search, Cloudflare Turnstile branch, Resend email (Brevo fallback), S3 report snapshots, Cron/EventBridge reminders | `shared/external.js`, `services/*/services/`, `evidence/DRV-05-live-geocode.txt`, `evidence/RESEND-LIVE-EMAIL.txt` | DONE; live Turnstile widget token PENDING |
+| Public Cloudflare Workers + Neon URLs (mandatory) | Static SPA + three Workers + Neon database, permanent account, health/CORS verified | Live URLs in §6; `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-*.png` | DONE |
+| Floci/localhost as lab evidence only | Docker Compose Floci, DynamoDB, three Lambdas (`nodejs24.x`, `lambda.handler`), API Gateway, S3, IAM, CloudWatch, EventBridge | `infra/floci/`, `infra/setup-all.sh`, `infra/deploy-all.sh`, `evidence/FLOCI-DOCKER.txt`, `evidence/FLOCI-SMOKE.txt` | DONE |
+| Lab tool flow | Git Bash scripts, AWS CLI `floci` profile, Postman collection, `.http` files, k6, Vercel/Cloudflare headers | `docs/lab-guide.md`, `evidence/lab-04-postman-collection.json`, `docs/requests.http`, `k6/`, `frontend/vercel.json`, `frontend/_headers` | DONE |
+| Browser robustness | Render-generation guard prevents an old async view from overwriting a newer screen with `Cannot set properties of null (setting 'innerHTML')` | `frontend/js/app.js`, `frontend/js/ui.js`, `frontend/js/views/`, `npm run browser:check`, `evidence/BROWSER-RENDER-REGRESSION.txt` | DONE |
+| Report sections 1–10, three nine-item statements, evidence | Full draft report, individual statements, test table and evidence index | `docs/report.md`, `docs/individual-statements.md`, `docs/testing.md`, `evidence/` | DONE with truthful placeholders |
+| `v1.0` tag and source ZIP | Annotated tag and `bdo-organizer-v1.0.zip` regenerated from the final `main` commit | `git ls-remote --tags origin v1.0`, `evidence/RELEASE.txt` | DONE |
+| Demo video ≤5 minutes with viewable URL | Not fabricated here; recording instructions and the public URL are provided | `FINALIZATION_README.md` §4, `docs/report.md` §8 | PENDING — human-created artefact |
+| Secrets hygiene | Secrets only from env/git-ignored files; no token, JWT, invite or connection string in tracked docs/evidence | `.gitignore`, `infra/secrets.env.example`, `evidence/RELEASE.txt` | DONE |
+
+## Cloud Labs mapping
+
+The lab PDFs use `cloud-issue-tracker`; this repository uses the required Blood Donation Drive Organizer. The tools, order, file names and evidence shape are preserved. Full commands are in [`docs/lab-guide.md`](docs/lab-guide.md).
+
+| Lab stage | Lab tool / checkpoint | BDO implementation and command | Evidence |
+|---|---|---|---|
+| 1–2 | Git Bash, Node 22, npm workspace | `npm install`, `npm test`, `npm run dev`, `npm run browser:check` | `evidence/NPM-TEST.txt`, `evidence/LOCAL-SMOKE.txt`, `evidence/BROWSER-RENDER-REGRESSION.txt` |
+| 3 | REST design, data services, ER model | `docs/api.md`, `docs/openapi.yaml`, `docs/data-model.md`, nine tables in every store | `docs/report.md` §3 |
+| 4 | Express + Postman Desktop + REST Client | `evidence/lab-04-postman-collection.json`, `docs/requests.http`, `docs/aws-api-tests.http` | `evidence/lab-04-postman-collection.json` |
+| 5 | Frontend, Vercel/Cloudflare headers, Neon | `frontend/vercel.json`, `frontend/_headers`, `npm run deploy:cloudflare`, `infra/db/schema.sql` | `evidence/PUBLIC-DEPLOYMENT.txt` |
+| 6/7 | Docker, Floci, DynamoDB, IAM, Lambda, API Gateway, S3, CloudWatch | `bash infra/setup-all.sh`, `bash infra/setup-lab7.sh`, `bash infra/check-lab7.sh`; handlers are `lambda.handler` on `nodejs24.x` | `evidence/FLOCI-DOCKER.txt`, `evidence/FLOCI-SMOKE.txt`, `evidence/LAB-07-CHECK.txt` |
+| 8 | Scale, secure, observe, k6 | `bash infra/run-floci.sh`, `bash infra/scale-test.sh`, `bash infra/check-lab8.sh`, `k6/bdo-load-test.js` | `evidence/LAB-08-K6.txt`, `evidence/LAB-08-CHECK.txt` |
+| Final | Public URL, report, ZIP, video | Cloudflare Workers + Neon; `docs/report.md`; `v1.0`; ZIP | `evidence/PUBLIC-SMOKE.txt`, `evidence/RELEASE.txt`; video still PENDING |
 
 ---
 
@@ -262,6 +299,8 @@ git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0
 - [`docs/api.md`](docs/api.md) — all public and internal endpoints
 - [`docs/data-model.md`](docs/data-model.md) — entities, ER diagram and CRUD/search matrix
 - [`docs/deployment.md`](docs/deployment.md) — both deployment paths and evidence checklist
+- [`TESTING_README.md`](TESTING_README.md) — start-to-finish testing playbook for local, lab, Floci and public deployments
+- [`TESTING_STEPS.md`](TESTING_STEPS.md) — full PowerShell request/response walkthrough
 - [`docs/testing.md`](docs/testing.md) — test plan and result table
 - [`docs/report.md`](docs/report.md) — final report draft (sections 1–10 + appendix)
 - [`docs/limitations.md`](docs/limitations.md) — known limits and improvements
