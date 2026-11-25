@@ -18,7 +18,7 @@ The workspace now contains a real local Git repository:
 
 ## Required next steps (must be done by the students)
 
-1. The repository already exists at `https://github.com/TasneemHazem10/blood_donation-cloud-.git` and is configured as `origin`; make sure it is public or that the module leader is invited as a collaborator. Re-push after any future change with:
+1. The repository already exists at `https://github.com/TasneemHazem10/blood_donation-cloud-.git`, is public, and is configured as `origin`. Re-push after any future change with:
 
    ```bash
    git push origin main
@@ -78,5 +78,5 @@ The workspace now contains a real local Git repository:
 ## What still needs a human decision
 
 * Habiba's and Hala's real Git names/emails and GitHub handles.
-* The team repository URL and whether it is public or the examiner is invited.
+* No repository-access decision is pending: the repository is public.
 * Which student pushes the protected `main` branch and creates the tag.

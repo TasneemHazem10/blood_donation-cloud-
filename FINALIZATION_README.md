@@ -57,7 +57,7 @@ Why: the brief requires **real per-student commits**, reviewed PRs, and a reposi
 shows each member's contribution. The current commits are import/documentation commits by
 Tasneem's configured Git identity — they are not proof that she wrote all three services.
 
-1. Make the repository public, or invite the module leader:
+1. The repository is already public at the URL below; no collaborator invitation is required:
    `https://github.com/TasneemHazem10/blood_donation-cloud-.git` → Settings → Collaborators.
 2. Enable branch protection on `main` (require a PR and at least one approval).
 3. Replace the remaining `REPLACE_WITH_HABIBA_GITHUB` / `REPLACE_WITH_HALA_GITHUB` entries in
