@@ -1,0 +1,39 @@
+# Lab 7 style REST Client requests for the Floci API Gateway.
+# Copy the API_URL printed by `bash infra/lab7-vars.sh` into @baseUrl.
+@baseUrl = http://YOUR_API_ID.execute-api.localhost.floci.io:4566
+
+### T01 Drive health — expect 200 and runtime "lambda"
+GET {{baseUrl}}/api/health/drive
+Accept: application/json
+
+### T02 Donor health — expect 200
+GET {{baseUrl}}/api/health/donor
+Accept: application/json
+
+### T03 Booking health — expect 200
+GET {{baseUrl}}/api/health/booking
+Accept: application/json
+
+### T04 View drives — expect 200
+GET {{baseUrl}}/api/drives
+Accept: application/json
+
+### T05 Invalid create drive — expect 400 VALIDATION_ERROR
+POST {{baseUrl}}/api/drives
+Content-Type: application/json
+Authorization: Bearer REPLACE_WITH_ORGANIZER_TOKEN
+
+{}
+### T06 Unknown route — expect 404 NOT_FOUND
+GET {{baseUrl}}/api/does-not-exist
+Accept: application/json
+
+### T07 CORS preflight from local website — expect ACAO http://localhost:8090
+OPTIONS {{baseUrl}}/api/drives
+Origin: http://localhost:8090
+Access-Control-Request-Method: GET
+
+### T08 CORS preflight from an evil origin — expect no ACAO for that origin
+OPTIONS {{baseUrl}}/api/drives
+Origin: https://evil.example
+Access-Control-Request-Method: GET

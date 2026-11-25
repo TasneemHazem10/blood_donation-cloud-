@@ -17,8 +17,8 @@ below is claimed as done until you perform it.
 | Branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` | ✅ pushed (currently identical to `main`) |
 | `npm test` | ✅ 59 tests, 59 pass, 0 fail |
 | Local smoke / Floci smoke | ✅ 22/22 each; repo-owned Docker Compose Floci `ALL CHECKS PASSED` (`evidence/FLOCI-DOCKER.txt`, `evidence/FLOCI-SMOKE.txt`) |
-| Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.sumptuous-william.workers.dev`; public smoke 22/22 |
-| Evidence files | ✅ `evidence/DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `FLOCI-DOCKER.txt`, `FLOCI-SMOKE.txt`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png` |
+| Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.bdo-organizer.workers.dev`; public smoke 22/22 |
+| Evidence files | ✅ `evidence/NPM-TEST.txt`, `LOCAL-SMOKE.txt`, `DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `FLOCI-DOCKER.txt`, `FLOCI-SMOKE.txt`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png`, `PUBLIC-E2E-CAPTURE.txt`, `LAB-07-CHECK.txt`, `LAB-08-CHECK.txt`, `LAB-08-K6.txt`, `lab-04-postman-collection.json` |
 | Report draft | ✅ `docs/report.md` sections 1–10 + appendix |
 | Three 9-item statements | ✅ `docs/individual-statements.md` |
 
@@ -104,10 +104,10 @@ Why: the brief requires a **public URL**. Floci is an emulator and cannot be the
 
 | Component | Live public URL |
 |---|---|
-| Website (Cloudflare Workers static assets) | **https://bdo-organizer.sumptuous-william.workers.dev** |
-| Drive Worker | https://bdo-drive.sumptuous-william.workers.dev |
-| Donor Worker | https://bdo-donor.sumptuous-william.workers.dev |
-| Booking Worker | https://bdo-booking.sumptuous-william.workers.dev |
+| Website (Cloudflare Workers static assets) | **https://bdo-organizer.bdo-organizer.workers.dev** |
+| Drive Worker | https://bdo-drive.bdo-organizer.workers.dev |
+| Donor Worker | https://bdo-donor.bdo-organizer.workers.dev |
+| Booking Worker | https://bdo-booking.bdo-organizer.workers.dev |
 
 Verified 25 Nov 2026:
 
@@ -119,9 +119,9 @@ Verified 25 Nov 2026:
 
 Important deployment notes:
 
-* The Workers use a **temporary Cloudflare preview account**. Claim it with the one-time link that was supplied outside the repository, or redeploy to your own account with `wrangler deploy --temporary`/`npx wrangler login`. If the claim expires, redeploy and update the public URLs in `frontend/js/config.js` and the docs.
+* The Workers are deployed to the **claimed permanent Cloudflare account** via `wrangler login`. Redeploy with `npx wrangler login` if credentials change; the public URLs are pinned in the docs and evidence.
 * All three `wrangler.toml` files include `compatibility_flags = ["global_fetch_strictly_public"]`; without it Booking → Drive/Donor calls fail with Cloudflare error `1042`. Cross-service calls now use Cloudflare service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking), which also avoids a `522` from Worker-to-Worker public fetches on the preview account.
-* The temporary free account has **0 cron triggers**, so the declared `0 6 * * *` trigger could not be attached. The manual Reminder button and `POST /internal/reminders/daily` are verified; attach the trigger on a permanent account if required.
+* The `0 6 * * *` trigger is declared in `services/booking/wrangler.toml`. A scheduled run was not separately captured; the manual Reminder button and `POST /internal/reminders/daily` are verified.
 * Turnstile remains unconfigured. Resend live email is enabled for the public Booking Worker with `EMAIL_MODE=live`; the key is a Worker secret and `evidence/RESEND-LIVE-EMAIL.txt` records a controlled `sent` result. No secret, claim token or invite code is stored in the repository.
 
 ---

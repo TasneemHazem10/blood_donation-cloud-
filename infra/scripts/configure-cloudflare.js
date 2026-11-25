@@ -14,9 +14,9 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const frontendDir = path.join(root, '.data', 'frontend-deploy');
 const services = ['drive', 'donor', 'booking'];
-// A temporary Cloudflare preview account has no saved credentials. Wrangler
-// accepts --temporary on both `deploy` and `secret put`, so the same commands
-// work for a claimed account and for a fresh preview account.
+// Optional bootstrap path: a fresh unauthenticated Cloudflare preview account
+// has no saved credentials. Wrangler accepts --temporary on both `deploy` and
+// `secret put`; the final deployment uses `wrangler login` (CF_TEMPORARY=0).
 const temporary = process.env.CF_TEMPORARY === '1';
 const deployFlags = temporary ? ['--temporary'] : [];
 const workerUrls = {
@@ -49,11 +49,27 @@ function run(command, args, options = {}) {
   });
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    throw new Error(`${command} ${args.join(' ')} exited with ${result.status}\n${result.stderr || ''}`);
+    // Never echo a claim URL or API token into logs or the terminal.
+    const safeError = `${result.stderr || ''}`
+      .replace(/https:\/\/dash\.cloudflare\.com\/claim-preview\?claimToken=[^\s"']+/g, '<claim URL saved to .data/cloudflare-claim.txt>')
+      .replace(/\b(?:CLOUDFLARE_API_TOKEN|apiToken)\s*[:=]\s*[^\s"']+/gi, '$1=<redacted>');
+    throw new Error(`${command} ${args.join(' ')} exited with ${result.status}\n${safeError}`);
   }
   // Wrangler prints the deployed URL to stdout but warnings to stderr; both
-  // are needed by the URL detector and neither contains a credential.
-  return `${result.stdout || ''}${result.stderr || ''}`;
+  // are needed by the URL detector. A fresh temporary account also prints a
+  // bearer-like claim URL; save it only in the git-ignored .data folder.
+  const output = `${result.stdout || ''}${result.stderr || ''}`;
+  const claim = output.match(/https:\/\/dash\.cloudflare\.com\/claim-preview\?claimToken=[^\s"']+/);
+  if (claim) {
+    fs.mkdirSync(path.join(root, '.data'), { recursive: true });
+    const claimFile = path.join(root, '.data', 'cloudflare-claim.txt');
+    const value = `${claim[0]}\n`;
+    if (!fs.existsSync(claimFile) || fs.readFileSync(claimFile, 'utf8') !== value) {
+      fs.writeFileSync(claimFile, value);
+      console.log('A new Cloudflare claim link was saved to .data/cloudflare-claim.txt (git-ignored).');
+    }
+  }
+  return output;
 }
 
 function npx(args, options) {
@@ -120,9 +136,9 @@ function findDeployedUrl(output) {
   return found ? found[0] : '';
 }
 
-// Service bindings cannot be created until the target Worker exists, and a
-// free preview account allows 0 cron triggers. Generate deployment configs
-// from the tracked ones so a fresh account can be bootstrapped in two passes.
+// Service bindings cannot be created until the target Worker exists, and an
+// unclaimed preview account may allow 0 cron triggers. The permanent account
+// keeps the declared trigger; this bootstrap path is only for a fresh account.
 function generatedWorkerConfig(service, { stripBindings = false } = {}) {
   const directory = path.join(root, '.data', 'workers-bootstrap');
   fs.mkdirSync(directory, { recursive: true });

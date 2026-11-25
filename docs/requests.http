@@ -1,0 +1,31 @@
+# Lab 4 style REST Client requests for local Express services.
+# Run `npm run dev` first. Change the @baseUrl value to switch services.
+@baseUrl = http://localhost:3001
+
+### T01 View drives — expect 200
+GET {{baseUrl}}/api/drives
+Accept: application/json
+
+### T02 Drive health — expect 200
+GET {{baseUrl}}/api/health/drive
+Accept: application/json
+
+### T03 Invalid create drive — expect 400 VALIDATION_ERROR
+POST {{baseUrl}}/api/drives
+Content-Type: application/json
+Authorization: Bearer REPLACE_WITH_ORGANIZER_TOKEN
+
+{}
+### T04 Unknown route — expect 404 NOT_FOUND
+GET {{baseUrl}}/api/does-not-exist
+Accept: application/json
+
+### T05 Malformed JSON — expect 400 MALFORMED_JSON
+POST {{baseUrl}}/api/drives
+Content-Type: application/json
+
+{
+### T06 CORS preflight — expect ACAO http://localhost:8090
+OPTIONS {{baseUrl}}/api/drives
+Origin: http://localhost:8090
+Access-Control-Request-Method: GET

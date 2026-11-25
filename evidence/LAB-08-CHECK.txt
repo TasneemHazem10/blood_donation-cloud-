@@ -1,0 +1,25 @@
+== Lab 8 BDO infrastructure checks ==
+PASS  01 AWS floci profile account 000000000000
+PASS  02 Floci health endpoint
+PASS  03 Floci dashboard
+PASS  04 API Gateway exists
+PASS  05 Lambda bdo-drive-service is Active
+PASS  06 Lambda bdo-donor-service is Active
+PASS  07 Lambda bdo-booking-service is Active
+PASS  08 DynamoDB bdo_drives is ACTIVE
+PASS  09 S3 bucket bdo-web exists
+PASS  10 CloudWatch log group exists
+== Lab 8 BDO local app and security checks ==
+PASS  11 Website on port 8090
+PASS  12 Drive health on port 3001
+PASS  13 Donor health on port 3002
+PASS  14 Booking health on port 3003
+PASS  15 Drive list returns 200
+PASS  16 X-Content-Type-Options: nosniff
+PASS  17 X-Frame-Options: DENY
+PASS  18 Content-Security-Policy present
+PASS  19 Referrer-Policy present
+PASS  20 Permissions-Policy present
+PASS  21 CORS preflight allows local website
+PASS  22 Malformed JSON returns 400
+Result: 22 passed, 0 failed

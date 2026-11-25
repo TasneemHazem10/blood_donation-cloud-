@@ -28,10 +28,10 @@ if aws_f lambda get-function --function-name bdo-booking-service >/dev/null 2>&1
   aws_f lambda update-function-code --function-name bdo-booking-service \
     --zip-file "fileb://dist/lambda/booking.zip" >/dev/null
   aws_f lambda update-function-configuration --function-name bdo-booking-service \
-    --handler index.handler --timeout 20 --environment "$ENV_VARS" >/dev/null
+    --runtime nodejs24.x --handler lambda.handler --timeout 20 --environment "$ENV_VARS" >/dev/null
 else
   aws_f lambda create-function --function-name bdo-booking-service \
-    --runtime nodejs22.x --handler index.handler --timeout 20 \
+    --runtime nodejs24.x --handler lambda.handler --timeout 20 \
     --role "$(role_arn bdo-booking-role)" \
     --zip-file "fileb://dist/lambda/booking.zip" \
     --environment "$ENV_VARS" >/dev/null

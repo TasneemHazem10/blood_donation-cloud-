@@ -14,6 +14,8 @@ All URLs, account ids and credentials below are **placeholders**. Never commit a
 | Wrangler 4 (`devDependency`) | Workers/Pages deployment and secrets | `npx wrangler --version` |
 | Neon account + psql or SQL editor | public Postgres schema | `psql --version` (optional) |
 
+For the Cloud Labs command order (Docker/Git Bash/`floci` profile → Lambda `lambda.handler`/`nodejs24.x` → API Gateway/S3 → k6/security checks), see [`docs/lab-guide.md`](lab-guide.md). The scripts `infra/setup-all.sh`, `infra/setup-lab7.sh`, `infra/check-lab7.sh`, `infra/run-floci.sh`, `infra/scale-test.sh` and `infra/check-lab8.sh` wrap the same steps for BDO.
+
 > Repository status: the Git repository exists and `main` is pushed. The `v1.0` tag and `bdo-organizer-v1.0.zip` were created from the verified deployment commit. Authentic per-student commits/PRs and the demo video remain tracked in [`FINALIZATION_README.md`](../FINALIZATION_README.md).
 
 ## Verified results (25 Nov 2026)
@@ -25,7 +27,7 @@ All URLs, account ids and credentials below are **placeholders**. Never commit a
 * `bash infra/deploy-all.sh` now completes: **ALL CHECKS PASSED** — drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200. API Gateway: `http://079d67cedb.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets.
 * Floci smoke through the API Gateway: **22 PASS**, report `storage:"s3"` (`evidence/FLOCI-SMOKE.txt`).
 * Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in work.
-* Public Cloudflare/Neon deployment is **live**: `https://bdo-organizer.sumptuous-william.workers.dev`; public smoke **22 PASS**, health/CORS/config/Neon evidence in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots in `evidence/PUBLIC-E2E-*.png`. Only the demo video still needs to be recorded.
+* Public Cloudflare/Neon deployment is **live**: `https://bdo-organizer.bdo-organizer.workers.dev`; public smoke **22 PASS**, health/CORS/config/Neon evidence in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots in `evidence/PUBLIC-E2E-*.png`. Only the demo video still needs to be recorded.
 
 ---
 
@@ -95,7 +97,7 @@ bash infra/deploy-all.sh
 This bundles code, creates the gateway, deploys the three student services, uploads the frontend, and runs checks:
 
 ```bash
-npm run zip:all       # dist/lambda/{drive,donor,booking}.zip, handler index.handler
+npm run zip           # dist/lambda/{drive,donor,booking}.zip, handler lambda.handler, runtime nodejs24.x
 npm run workers:bundle # services/*/dist/worker.js (prepares the Cloudflare artefacts too)
 bash infra/gateway.sh
 bash infra/services/drive.sh
@@ -113,7 +115,7 @@ Verified on 25 Nov 2026: this script completes with **ALL CHECKS PASSED**. Deplo
 
 | Student / service | AWS services actually used | Resource names |
 | --- | --- | --- |
-| **Habiba — Drive** (`infra/services/drive.sh`) | 1. DynamoDB (4 tables)<br>2. S3 (`bdo-drive-reports` for CSV snapshots)<br>3. IAM role + policy<br>4. CloudWatch Logs<br>5. Lambda (`nodejs22.x`, 20 s)<br>6. API Gateway routes | tables `bdo_drives`, `bdo_slots`, `bdo_reports`, `bdo_geocodes`; IAM `bdo-drive-role`; log group `/aws/lambda/bdo-drive-service`; Lambda `bdo-drive-service` |
+| **Habiba — Drive** (`infra/services/drive.sh`) | 1. DynamoDB (4 tables)<br>2. S3 (`bdo-drive-reports` for CSV snapshots)<br>3. IAM role + policy<br>4. CloudWatch Logs<br>5. Lambda (`nodejs24.x`, `lambda.handler`, 20 s)<br>6. API Gateway routes | tables `bdo_drives`, `bdo_slots`, `bdo_reports`, `bdo_geocodes`; IAM `bdo-drive-role`; log group `/aws/lambda/bdo-drive-service`; Lambda `bdo-drive-service` |
 | **Tasneem — Donor** (`infra/services/donor.sh`) | 1. DynamoDB (3 tables)<br>2. IAM role + policy<br>3. CloudWatch Logs<br>4. Lambda<br>5. API Gateway routes<br>(Turnstile is an external SaaS check) | tables `bdo_users`, `bdo_donors`, `bdo_donations`; IAM `bdo-donor-role`; log group `/aws/lambda/bdo-donor-service`; Lambda `bdo-donor-service`; `TURNSTILE_SECRET` env var |
 | **Hala — Booking** (`infra/services/booking.sh`) | 1. DynamoDB (2 tables)<br>2. IAM role + policy (incl. `lambda:InvokeFunction`)<br>3. CloudWatch Logs<br>4. Lambda<br>5. EventBridge rule<br>6. API Gateway routes<br>(Resend is external) | tables `bdo_bookings`, `bdo_reminders`; IAM `bdo-booking-role`; log group `/aws/lambda/bdo-booking-service`; Lambda `bdo-booking-service`; rule `bdo-daily-reminders` |
 | Shared | 1. API Gateway HTTP API (all routes + `OPTIONS` proxy routes)<br>2. S3 static website `bdo-web` with public read policy | `API_ID`, `API_URL` in `infra/.state`; site URL `<FLOCI_URL>/bdo-web/index.html` |
@@ -196,7 +198,7 @@ npx wrangler deploy --config services/donor/wrangler.toml   # -> <DONOR_WORKER_U
 npx wrangler deploy --config services/booking/wrangler.toml # -> <BOOKING_WORKER_URL>
 ```
 
-Each `wrangler.toml` sets `main = "dist/worker.js"`, `DATA_DRIVER = "neon"`, `NODE_ENV = "production"` and `CORS_ORIGINS = "https://bdo-organizer.sumptuous-william.workers.dev"` (verified in `evidence/PUBLIC-DEPLOYMENT.txt`). All three also set `compatibility_flags = ["global_fetch_strictly_public"]`. Cross-service calls use service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking) to avoid preview-account `522` errors. The Booking Worker uses the `EMAIL_MODE=live` secret with a git-ignored `RESEND_API_KEY`.
+Each `wrangler.toml` sets `main = "dist/worker.js"`, `DATA_DRIVER = "neon"`, `NODE_ENV = "production"` and `CORS_ORIGINS = "https://bdo-organizer.bdo-organizer.workers.dev"` (verified in `evidence/PUBLIC-DEPLOYMENT.txt`). All three also set `compatibility_flags = ["global_fetch_strictly_public"]`. Cross-service calls use service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking) to avoid preview-account `522` errors. The Booking Worker uses the `EMAIL_MODE=live` secret with a git-ignored `RESEND_API_KEY`.
 
 ### 3.4 Secrets and variables
 
@@ -261,7 +263,7 @@ window.BDO = {
 };
 ```
 
-> `infra/scripts/configure-cloudflare.js` **exists**, and `npm run deploy:cloudflare` runs it. With Cloudflare/Neon environment variables it bundles Workers, applies the schema, deploys, sets secrets (including the public site URL for `CORS_ORIGINS`), writes `frontend/js/config.js`, and verifies the three health endpoints. The live deployment used `wrangler deploy --temporary` with a secrets file on a preview account; no secret or claim token belongs in this file. See `evidence/PUBLIC-DEPLOYMENT.txt`.
+> `infra/scripts/configure-cloudflare.js` **exists**, and `npm run deploy:cloudflare` runs it. With Cloudflare/Neon environment variables it bundles Workers, applies the schema, deploys, sets secrets (including the public site URL for `CORS_ORIGINS`), writes `frontend/js/config.js`, and verifies the three health endpoints. The deployment was finalized with `wrangler login` on the claimed account; no secret or claim token belongs in this file. See `evidence/PUBLIC-DEPLOYMENT.txt`.
 
 Deploy:
 
@@ -269,7 +271,7 @@ Deploy:
 npx wrangler deploy --config frontend/wrangler.toml   # -> <PAGES_OR_WORKERS_SITE_URL>
 ```
 
-If using classic Cloudflare Pages instead, create a Pages project named `bdo-organizer` and upload `frontend/`; then set the same `window.BDO` values through the Pages build output. The report uses the live public URL **https://bdo-organizer.sumptuous-william.workers.dev**, never `localhost`.
+If using classic Cloudflare Pages instead, create a Pages project named `bdo-organizer` and upload `frontend/`; then set the same `window.BDO` values through the Pages build output. The report uses the live public URL **https://bdo-organizer.bdo-organizer.workers.dev**, never `localhost`.
 
 ### 3.6 Cloudflare cron status — checklist
 
@@ -277,7 +279,7 @@ If using classic Cloudflare Pages instead, create a Pages project named `bdo-org
 - [x] `services/booking/worker.js` exports `scheduled(controller, env, ctx)`, which calls the same `sendForDate()` logic as the organizer button and `/internal/reminders/daily`.
 - [x] Floci EventBridge events are handled by `services/booking/lambda.js` when `source === 'aws.events'`.
 - [x] Public manual reminder path verified: organizer Emails button (`POST /api/reminders/send`) and `POST /internal/reminders/daily` both returned 200 in `evidence/PUBLIC-SMOKE.txt` (1 sent, 1 skipped on repeat).
-- [ ] Cron-trigger execution on Cloudflare is unverified: the temporary preview account allows 0 cron triggers. Attach `0 6 * * *` on a permanent account and capture one scheduled run.
+- [ ] Cron-trigger execution on Cloudflare is declared in `services/booking/wrangler.toml`; a scheduled run was not separately captured. The organizer Reminder button and internal daily route were verified.
 
 ### 3.7 Public verification
 

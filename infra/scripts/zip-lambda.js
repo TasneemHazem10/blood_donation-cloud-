@@ -17,12 +17,12 @@ const root = path.resolve(__dirname, '../..');
     const entry = path.join(root, 'services', service, 'lambda.js');
     await esbuild.build({
       entryPoints: [entry],
-      outfile: path.join(folder, 'index.js'),
+      outfile: path.join(folder, 'lambda.js'),
       bundle: true,
       minify: true,
       platform: 'node',
       format: 'cjs',
-      target: 'node22',
+      target: 'node24',
       logLevel: 'warning'
     });
 
@@ -33,9 +33,10 @@ const root = path.resolve(__dirname, '../..');
       output.on('close', resolve);
       archive.on('error', reject);
       archive.pipe(output);
-      archive.file(path.join(folder, 'index.js'), { name: 'index.js' });
+      // Lab 7 names the package entry file lambda.js and the handler lambda.handler.
+      archive.file(path.join(folder, 'lambda.js'), { name: 'lambda.js' });
       archive.finalize();
     });
-    console.log(`Lambda package: dist/lambda/${service}.zip (handler index.handler)`);
+    console.log(`Lambda package: dist/lambda/${service}.zip (handler lambda.handler)`);
   }
 })().catch((error) => { console.error(error); process.exit(1); });

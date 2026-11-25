@@ -7,7 +7,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
-const dbFile = path.join(root, '.data', 'bdo.sqlite');
+// Lab 8 horizontal scaling starts several independent stacks. The ports are
+// configurable so each replica owns its own ports and SQLite database.
+const replica = Number(process.env.BDO_REPLICA || 0);
+const offset = replica * 100;
+const drivePort = Number(process.env.DRIVE_PORT || 3001 + offset);
+const donorPort = Number(process.env.DONOR_PORT || 3002 + offset);
+const bookingPort = Number(process.env.BOOKING_PORT || 3003 + offset);
+const webPort = Number(process.env.WEB_PORT || 8090 + offset);
+const dbFile = path.join(root, '.data', replica === 0 ? 'bdo.sqlite' : `bdo-replica-${replica}.sqlite`);
 const shared = {
   ...process.env,
   NODE_ENV: 'development',
@@ -18,14 +26,14 @@ const shared = {
   JWT_SECRET: process.env.JWT_SECRET || 'local-dev-jwt-secret-change-in-production',
   INTERNAL_KEY: process.env.INTERNAL_KEY || 'local-dev-internal-key',
   ORGANIZER_INVITE: process.env.ORGANIZER_INVITE || 'blood2026',
-  DRIVE_SERVICE_URL: 'http://localhost:3001',
-  DONOR_SERVICE_URL: 'http://localhost:3002',
-  BOOKING_SERVICE_URL: 'http://localhost:3003',
-  CORS_ORIGINS: 'http://localhost:8090'
+  DRIVE_SERVICE_URL: `http://localhost:${drivePort}`,
+  DONOR_SERVICE_URL: `http://localhost:${donorPort}`,
+  BOOKING_SERVICE_URL: `http://localhost:${bookingPort}`,
+  CORS_ORIGINS: `http://localhost:${webPort}`
 };
 
 const children = [];
-for (const [service, port] of [['drive', 3001], ['donor', 3002], ['booking', 3003]]) {
+for (const [service, port] of [['drive', drivePort], ['donor', donorPort], ['booking', bookingPort]]) {
   const child = spawn(process.execPath, [path.join(root, 'services', service, 'server.js')], {
     cwd: root,
     env: { ...shared, PORT: String(port) },
@@ -53,13 +61,15 @@ http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' });
     res.end(content);
   });
-}).listen(8090, () => {
-  console.log('\nWebsite:   http://localhost:8090');
-  console.log('Drive API: http://localhost:3001  |  Donor API: http://localhost:3002  |  Booking API: http://localhost:3003');
+}).listen(webPort, () => {
+  console.log(`\nWebsite:   http://localhost:${webPort}`);
+  console.log(`Drive API: http://localhost:${drivePort}  |  Donor API: http://localhost:${donorPort}  |  Booking API: http://localhost:${bookingPort}`);
   console.log('Press Ctrl+C to stop everything.\n');
 });
 
-process.on('SIGINT', () => {
+function shutdown() {
   children.forEach((child) => child.kill());
   process.exit(0);
-});
+}
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

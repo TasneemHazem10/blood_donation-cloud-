@@ -2,7 +2,7 @@
 
 A complete three-service cloud application for organizing blood donation drives. Organizers publish drives and time slots, donors register and book a seat, and the Booking service checks eligibility, reserves seats atomically, records attendance and sends confirmations/reminders.
 
-This README is the **manual setup and deployment guide**. A deeper implementation walkthrough is in [`FULL_PROJECT_GUIDE.md`](FULL_PROJECT_GUIDE.md). Report material is in [`docs/`](docs/). The hand-over checklist of everything still needed from the team (GitHub identities, Cloudflare/Neon secrets, video, evidence and final tagging) is in [`FINALIZATION_README.md`](FINALIZATION_README.md). The exact step-by-step manual testing procedure (API journey, error cases, UI, database, smoke runs and deployed checks) is in [`TESTING_STEPS.md`](TESTING_STEPS.md).
+This README is the **manual setup and deployment guide**. A deeper implementation walkthrough is in [`FULL_PROJECT_GUIDE.md`](FULL_PROJECT_GUIDE.md). Report material is in [`docs/`](docs/). The hand-over checklist of everything still needed from the team (GitHub identities, Cloudflare/Neon secrets, video, evidence and final tagging) is in [`FINALIZATION_README.md`](FINALIZATION_README.md). The exact step-by-step manual testing procedure (API journey, error cases, UI, database, smoke runs and deployed checks) is in [`TESTING_STEPS.md`](TESTING_STEPS.md). To repeat the work with the same tools and command order as the Cloud Labs PDFs (Docker/Git Bash/AWS CLI `floci` profile/Postman/http-server/k6/Vercel-style headers/Neon), use [`docs/lab-guide.md`](docs/lab-guide.md).
 
 ---
 
@@ -153,16 +153,16 @@ This is the public deployment required by the final-phase plan. It uses three Cl
 
 | Component | Public URL |
 |---|---|
-| Website | **https://bdo-organizer.sumptuous-william.workers.dev** |
-| Drive API | https://bdo-drive.sumptuous-william.workers.dev |
-| Donor/Eligibility API | https://bdo-donor.sumptuous-william.workers.dev |
-| Booking/Reminder API | https://bdo-booking.sumptuous-william.workers.dev |
+| Website | **https://bdo-organizer.bdo-organizer.workers.dev** |
+| Drive API | https://bdo-drive.bdo-organizer.workers.dev |
+| Donor/Eligibility API | https://bdo-donor.bdo-organizer.workers.dev |
+| Booking/Reminder API | https://bdo-booking.bdo-organizer.workers.dev |
 
 The supplied Neon database has `infra/db/schema.sql` applied. All three health endpoints return 200 with the website origin in `Access-Control-Allow-Origin`, the deployed `frontend/js/config.js` points at the three public Worker URLs, and `npm run smoke` passes **22/22** against the public deployment. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`.
 
 The three `services/*/wrangler.toml` files set `compatibility_flags = ["global_fetch_strictly_public"]`. Without it Cloudflare returns error `1042` when one Worker calls another through a public `workers.dev` URL. Cross-service calls now use Cloudflare service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking), which also avoids a `522` from Worker-to-Worker public fetches on the preview account.
 
-This deployment uses a **temporary Cloudflare preview account**. Claim it with the link supplied out-of-band (never commit the claim token) or redeploy to a permanent account. The temporary free plan allows **0 cron triggers**, so the `0 6 * * *` trigger declared in `services/booking/wrangler.toml` could not be attached there; the organizer Reminder button and `POST /internal/reminders/daily` were verified instead. Turnstile remains unconfigured; Resend live email is enabled with `EMAIL_MODE=live` and a git-ignored API key.
+This deployment uses the **claimed permanent Cloudflare account** via `wrangler login`; no claim token is stored in the repository. The `0 6 * * *` trigger is declared in `services/booking/wrangler.toml`; a scheduled run was not separately captured, so the organizer Reminder button and `POST /internal/reminders/daily` were verified instead. Turnstile remains unconfigured; Resend live email is enabled with `EMAIL_MODE=live` and a git-ignored API key.
 
 ### One-time manual setup
 
@@ -199,10 +199,10 @@ On Windows PowerShell, use `$env:NAME='value'` instead of `export NAME='value'`.
 Verify manually in a browser and from a phone:
 
 ```text
-https://bdo-organizer.sumptuous-william.workers.dev
-https://bdo-drive.sumptuous-william.workers.dev/api/health/drive
-https://bdo-donor.sumptuous-william.workers.dev/api/health/donor
-https://bdo-booking.sumptuous-william.workers.dev/api/health/booking
+https://bdo-organizer.bdo-organizer.workers.dev
+https://bdo-drive.bdo-organizer.workers.dev/api/health/drive
+https://bdo-donor.bdo-organizer.workers.dev/api/health/donor
+https://bdo-booking.bdo-organizer.workers.dev/api/health/booking
 ```
 
 Never commit `.dev.vars`, `.env`, `infra/secrets.env` or real credentials.
@@ -222,10 +222,10 @@ Each student must make real commits to their own service. The generated code is 
 
 Evidence to collect for the report:
 
-- Floci deployment + smoke evidence is in `evidence/FLOCI-SMOKE.txt`; public health/config/database evidence is in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots are `evidence/PUBLIC-E2E-home.png` and `evidence/PUBLIC-E2E-drives.png`. Live Resend delivery evidence is in `evidence/RESEND-LIVE-EMAIL.txt`. Local browser evidence is in `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` (headless Chrome at `http://localhost:8090`).
+- Floci deployment + smoke evidence is in `evidence/FLOCI-SMOKE.txt`; public health/config/database evidence is in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots are `evidence/PUBLIC-E2E-home.png` and `evidence/PUBLIC-E2E-drives.png`, with capture details in `evidence/PUBLIC-E2E-CAPTURE.txt`. Live Resend delivery evidence is in `evidence/RESEND-LIVE-EMAIL.txt`. Local browser evidence is in `evidence/E2E-04-home.png` and `evidence/E2E-04-drives.png` (headless Chrome at `http://localhost:8090`).
 - Postman or `curl` request/response pairs for each endpoint.
 - Neon SQL editor screenshots after create/update/delete.
-- `npm test` output plus rows in [`docs/testing.md`](docs/testing.md).
+- `npm test` output (`evidence/NPM-TEST.txt`) and local smoke output (`evidence/LOCAL-SMOKE.txt`), plus rows in [`docs/testing.md`](docs/testing.md).
 - GitHub PR/merge/commit links for each student.
 - A demo video of ≤5 minutes recorded from the **public cloud URL**, starting with the full end-to-end journey, then one segment per student. Make the link viewable by anyone.
 
@@ -249,7 +249,7 @@ git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0
 | Worker returns 500 after deployment | Check `npx wrangler tail <worker-name>`; usually a missing Worker secret (`DATABASE_URL`, `JWT_SECRET`, `INTERNAL_KEY`). |
 | Cross-service call returns `404 error code: 1042` on Workers | Add `compatibility_flags = ["global_fetch_strictly_public"]` to the calling Worker's `wrangler.toml` and redeploy. This is already set on all three services. |
 | Cross-service call returns `522` on a preview account | Use Cloudflare service bindings instead of public `workers.dev` fetches. Drive binds `BOOKING`; Booking binds `DRIVE` and `DONOR`. This is already configured. |
-| Cron Trigger missing on temporary preview account | Temporary free accounts have a limit of 0 cron triggers; use the manual Reminder button or a permanent Cloudflare account. |
+| Cron Trigger timing was not captured | The trigger is declared and the account is permanent; use the manual Reminder button for deterministic evidence. |
 | Neon first request is slow | Free compute wakes from pause; open the app once before the demo. |
 | Reminder emails do not arrive | Without `RESEND_API_KEY` or `BREVO_API_KEY` the service stays in log mode. With Resend's free testing mode, only the account owner's address receives mail; other recipients are stored as `failed` rows. See `evidence/RESEND-LIVE-EMAIL.txt`. |
 

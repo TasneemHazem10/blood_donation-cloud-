@@ -70,20 +70,20 @@ These are the build notes and difficulties encountered while assembling the rebu
 ### Entry 10 — Bundling for Lambda and Workers
 
 * **Problem:** uploading `node_modules` into three Lambdas is slow and error-prone; Workers need ESM bundles.
-* **Fix:** `infra/scripts/zip-lambda.js` uses esbuild to produce `dist/lambda/<service>/index.js` (CJS, `node22`) and zips it as `dist/lambda/<service>.zip` with handler `index.handler`. `infra/scripts/bundle-workers.js` emits `services/<service>/dist/worker.js` (ESM, `es2022`) matching each `wrangler.toml` `main`. `dist/` and `*.zip` are git-ignored; `.env`/`.dev.vars` are never bundled.
+* **Fix:** `infra/scripts/zip-lambda.js` uses esbuild to produce `dist/lambda/<service>/lambda.js` (CJS, `node24`) and zips it as `dist/lambda/<service>.zip` with handler `lambda.handler`, matching the Cloud Labs Lambda convention. `infra/scripts/bundle-workers.js` emits `services/<service>/dist/worker.js` (ESM, `es2022`) matching each `wrangler.toml` `main`. `dist/` and `*.zip` are git-ignored; `.env`/`.dev.vars` are never bundled.
 * **Status:** implemented; both commands run from `npm run zip:all` / `npm run workers:bundle` and succeed.
 
 ### Entry 11 — Frontend configuration differs per deployment
 
 * **Problem:** the SPA needs the API base URLs at load time; secrets cannot be in the browser.
 * **Fix:** `frontend/js/api.js` reads `window.BDO.services` from `frontend/js/config.js`. `infra/frontend.sh` rewrites it for Floci and uploads it to `s3://bdo-web/js/config.js`. `infra/scripts/configure-cloudflare.js` generates the same file for Cloudflare from env vars via `npm run deploy:cloudflare`; no secrets are written to the browser config.
-* **Status:** Floci verified (`http://localhost:4566/bdo-web/index.html` → 200); Cloudflare verified at `https://bdo-organizer.sumptuous-william.workers.dev/js/config.js`, which contains the three public Worker URLs (see `evidence/PUBLIC-DEPLOYMENT.txt`).
+* **Status:** Floci verified (`http://localhost:4566/bdo-web/index.html` → 200); Cloudflare verified at `https://bdo-organizer.bdo-organizer.workers.dev/js/config.js`, which contains the three public Worker URLs (see `evidence/PUBLIC-DEPLOYMENT.txt`).
 
 ### Entry 12 — Reminder scheduling differs per deployment
 
 * **Problem:** the daily reminder should be automatic, but Floci and Cloudflare expose different scheduler mechanisms.
 * **Fix:** Floci `infra/services/booking.sh` creates EventBridge rule `bdo-daily-reminders` (`cron(0 6 * * ? *)`) targeting the Booking Lambda; `lambda.js` detects `source: 'aws.events'` and calls `sendForDate()` directly. Cloudflare `services/booking/wrangler.toml` declares `[triggers] crons = ["0 6 * * *"]` and `worker.js` exports `scheduled()`, which sets the Neon store and reuses the same function. The internal route and organizer button use the same idempotent reminder id.
-* **Status:** implemented on both platforms; public manual reminder route and organizer button verified on Cloudflare. The temporary preview account allows 0 cron triggers, so the declared `0 6 * * *` trigger could not be attached there; attach it on a permanent account to observe a scheduled run.
+* **Status:** implemented on both platforms; public manual reminder route and organizer button verified on Cloudflare. The claimed account is used; `0 6 * * *` is declared in `services/booking/wrangler.toml`. A scheduled run was not separately captured; the manual reminder route is verified.
 
 ### Entry 13 — Testability features
 

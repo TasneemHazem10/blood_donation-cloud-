@@ -17,7 +17,13 @@ function corsHeaders(requestOrigin) {
     'Vary': 'Origin',
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
+    // Lab 8 security checks (S1). The API only returns JSON, so no remote
+    // scripts, styles, images or frames are needed.
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
     'Referrer-Policy': 'no-referrer',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+    'Cross-Origin-Opener-Policy': 'same-origin',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
     'Cache-Control': 'no-store'
   };
 }

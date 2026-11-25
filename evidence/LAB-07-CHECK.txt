@@ -1,0 +1,16 @@
+== Lab 7 BDO deployment checks ==
+API Gateway: http://079d67cedb.execute-api.localhost.floci.io:4566
+PASS  01 AWS floci profile account 000000000000
+PASS  02 Floci health endpoint
+PASS  03 Floci dashboard
+PASS  04 API Gateway exists
+PASS  05 API Gateway exists in AWS
+PASS  06 Drive health through API Gateway
+PASS  07 Donor health through API Gateway
+PASS  08 Booking health through API Gateway
+PASS  09 Website index.html on S3
+PASS  10 DynamoDB bdo_drives is ACTIVE
+PASS  11 Lambda bdo-drive-service is Active
+PASS  12 Lambda bdo-donor-service is Active
+PASS  13 S3 bucket bdo-web exists
+Result: 13 passed, 0 failed
