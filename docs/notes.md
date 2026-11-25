@@ -89,13 +89,13 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 * **Problem:** tests must not call real Nominatim, Turnstile or email providers, and date-dependent rules need stable inputs.
 * **Fix:** `TEST_MODE=1` makes geocoding deterministic and skips Turnstile; `EMAIL_MODE=log` records email rows locally; `shared/context.js` exposes `setClock()`; `shared/serviceClient.js` exposes `setServiceFetch()`. `npm test` uses `--test-concurrency=1` to avoid SQLite contention.
-* **Status:** 53 tests written under `tests/`; `npm test` → 53 pass, 0 fail. `scripts/smoke.mjs` creates fresh accounts each run and accepts `BDO_API_URL` for Floci; both local and Floci runs are 22/22 PASS.
+* **Status:** 59 tests written under `tests/`; `npm test` → 59 pass, 0 fail. `scripts/smoke.mjs` creates fresh accounts each run and accepts `BDO_API_URL` for Floci; both local and Floci runs are 22/22 PASS.
 
 ### Entry 14 — Evidence and ownership gap
 
 * **Problem:** generated commits cannot prove which student wrote which service.
-* **Fix required:** protect `main`, keep one `feature/*` branch per student, require one teammate review per PR, tag `v1.0`, and make the zip and demo video from that tag. Real GitHub usernames are still needed for `.github/CODEOWNERS`.
-* **Status:** repository, branches and pushed history exist at `https://github.com/TasneemHazem10/blood_donation-cloud-.git`; real per-student commits/PRs, tag, zip and video are still not done, so those references in `docs/individual-statements.md` remain explicit placeholders.
+* **Fix required:** protect `main`, keep one `feature/*` branch per student, require one teammate review per PR, and recreate `v1.0`, the ZIP and the demo video from that final history. Real GitHub usernames are still needed for `.github/CODEOWNERS`.
+* **Status:** repository, branches and pushed history exist at `https://github.com/TasneemHazem10/blood_donation-cloud-.git`; `v1.0` and `bdo-organizer-v1.0.zip` were created from the verified deployment commit. Real per-student commits/PRs and the video are still not done, so those references in `docs/individual-statements.md` remain explicit placeholders.
 
 ### Entry 15 — Documentation rebuild
 
@@ -136,8 +136,8 @@ These are the build notes and difficulties encountered while assembling the rebu
 ### Entry 21 — Evidence captured
 
 * **Observation:** documentation previously described tests, cron, config generation and Floci deployment as missing.
-* **Action:** ran `npm test` (53/53 after adding `tests/pending-evidence.test.js`), local smoke (22/22), `bash infra/deploy-all.sh` (ALL CHECKS PASSED), Floci smoke (22/22) and `npm run evidence:capture` (live Nominatim, 429 and Turnstile missing-token captures); reconciled all Markdown files with those results.
-* **Status:** complete for local/Floci and public Cloudflare/Neon (`evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-*.png`). Git PR history, zip and video remain to be produced.
+* **Action:** ran `npm test` (59/59 after adding `tests/pending-evidence.test.js`), local smoke (22/22), `bash infra/deploy-all.sh` (ALL CHECKS PASSED), Floci smoke (22/22) and `npm run evidence:capture` (live Nominatim, 429 and Turnstile missing-token captures); reconciled all Markdown files with those results.
+* **Status:** complete for local/Floci and public Cloudflare/Neon (`evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-*.png`). The tag and source ZIP exist; Git PR history and the video remain to be produced.
 
 ### Entry 22 — Worker-to-Worker fetch failed with error 1042
 

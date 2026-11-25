@@ -14,7 +14,7 @@ Commands:
 
 ```bash
 npm install
-npm test                          # 53 tests, 53 pass, 0 fail
+npm test                          # 59 tests, 59 pass, 0 fail
 npm run evidence:capture          # writes evidence/DRV-05, DON-14, DON-16 files
 node infra/scripts/dev-all.js     # or npm run dev
 npm run smoke                     # local: 22 PASS
@@ -31,7 +31,7 @@ bash infra/deploy-all.sh          # Git Bash; ends with ALL CHECKS PASSED
 
 | Check | Result |
 | --- | --- |
-| `npm test` | **53 tests, 53 pass, 0 fail** (`tests/booking-api.test.js`, `donor-api.test.js`, `drive-api.test.js`, `integration.test.js`, `pending-evidence.test.js`, `shared-rules.test.js`) |
+| `npm test` | **59 tests, 59 pass, 0 fail** (`tests/booking-api.test.js`, `donor-api.test.js`, `drive-api.test.js`, `integration.test.js`, `pending-evidence.test.js`, `shared-rules.test.js`) |
 | Evidence capture | `npm run evidence:capture` wrote `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt` and `evidence/DRV-05-live-geocode.txt` |
 | Local smoke | **22/22 PASS**; report `{"booked":1,"attended":1,"turnout":100,"storage":"database"}` |
 | Floci deployment | **ALL CHECKS PASSED**: drive/donor/booking health, drive list, website object, Floci dashboard |

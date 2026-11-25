@@ -14,12 +14,12 @@ All URLs, account ids and credentials below are **placeholders**. Never commit a
 | Wrangler 4 (`devDependency`) | Workers/Pages deployment and secrets | `npx wrangler --version` |
 | Neon account + psql or SQL editor | public Postgres schema | `psql --version` (optional) |
 
-> Repository status: the Git repository exists and `main` is pushed. Authentic per-student commits/PRs, the `v1.0` tag and the demo video remain tracked in [`FINALIZATION_README.md`](../FINALIZATION_README.md).
+> Repository status: the Git repository exists and `main` is pushed. The `v1.0` tag and `bdo-organizer-v1.0.zip` were created from the verified deployment commit. Authentic per-student commits/PRs and the demo video remain tracked in [`FINALIZATION_README.md`](../FINALIZATION_README.md).
 
 ## Verified results (25 Nov 2026)
 
 * Local website: `http://localhost:8090`; APIs: `3001` drive, `3002` donor, `3003` booking. The seed's final message now prints `http://localhost:8090` (the 8080 conflict was resolved by using 8090).
-* `npm test`: **53 tests, 53 pass, 0 fail**, across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,shared-rules}.test.js`.
+* `npm test`: **59 tests, 59 pass, 0 fail**, across `tests/{booking-api,donor-api,drive-api,integration,pending-evidence,runtime-robustness,shared-rules}.test.js`.
 * Local smoke `scripts/smoke.mjs`: **22 PASS** (register/login, drive and slot, eligibility, booking `201`, duplicate `409`, reminders 1 sent + 1 skipped, check-in `attended`, donation recorded, report `{booked:1,attended:1,turnout:100,storage:"database"}`, and 401/403/404/400/409 cases). It creates fresh accounts each run and supports `BDO_API_URL` for Floci.
 * The repo-owned Docker Compose stack starts `bdo-floci` (`floci/floci:latest-compat`, hybrid storage, port `4566`, persistent `floci-data` volume); container health, image, mounts and gateway URL are recorded in `evidence/FLOCI-DOCKER.txt`.
 * `bash infra/deploy-all.sh` now completes: **ALL CHECKS PASSED** — drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200. API Gateway: `http://079d67cedb.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets.
@@ -319,8 +319,8 @@ Wake Neon before a demo: free compute may pause after inactivity and the first r
 
 - [x] `infra/scripts/configure-cloudflare.js` exists; `npm run deploy:cloudflare` runs it.
 - [x] Cloudflare Booking cron (`0 6 * * *`) and `scheduled()` handler are configured; Booking Lambda handles EventBridge `aws.events`.
-- [x] Floci deployment completes with `ALL CHECKS PASSED`; local and Floci smoke are 22/22 each; `npm test` is 53/53.
-- [ ] Real per-student commits, PRs, `v1.0` tag and code zip are still not done; CODEOWNERS retain placeholders until real GitHub usernames are known. (Repository and branches exist.)
+- [x] Floci deployment completes with `ALL CHECKS PASSED`; local and Floci smoke are 22/22 each; `npm test` is 59/59.
+- [x] `v1.0` tag and `bdo-organizer-v1.0.zip` were created from the verified deployment commit. [ ] Real per-student commits/PRs are still not done; CODEOWNERS retain placeholders until real GitHub usernames are known. (Repository and branches exist.)
 - [ ] Demo video and Cloudflare/Neon approval screenshot are still not done. Public frontend browser screenshots **are** captured in `evidence/PUBLIC-E2E-*.png`.
 - [x] Resend live email is configured as a Worker secret with `EMAIL_MODE=live`; controlled delivery is evidenced in `evidence/RESEND-LIVE-EMAIL.txt`. [ ] Real Turnstile keys are not configured; bot-check evidence is still pending.
 - [x] Public Cloudflare + Neon deployment executed and verified (`evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`). Manual Nominatim evidence is in `evidence/DRV-05-live-geocode.txt`.

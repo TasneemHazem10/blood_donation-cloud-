@@ -15,7 +15,7 @@ below is claimed as done until you perform it.
 |---|---|
 | Three services + SPA + shared modules + infra | ✅ pushed on `main` (see `git log -1`) |
 | Branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` | ✅ pushed (currently identical to `main`) |
-| `npm test` | ✅ 53 tests, 53 pass, 0 fail |
+| `npm test` | ✅ 59 tests, 59 pass, 0 fail |
 | Local smoke / Floci smoke | ✅ 22/22 each; repo-owned Docker Compose Floci `ALL CHECKS PASSED` (`evidence/FLOCI-DOCKER.txt`, `evidence/FLOCI-SMOKE.txt`) |
 | Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.separate-scowl.workers.dev`; public smoke 22/22 |
 | Evidence files | ✅ `evidence/DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `FLOCI-DOCKER.txt`, `FLOCI-SMOKE.txt`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png` |
@@ -159,6 +159,8 @@ Important deployment notes:
 
 ## 6. Freeze, tag and package
 
+**Status:** `v1.0` and `bdo-organizer-v1.0.zip` were created from the verified public-deployment commit. If real per-student commits/PRs or the demo video are added later, recreate both from the final demonstrated commit.
+
 Only after sections 2–5 are complete and the demo is recorded:
 
 ```bash
@@ -197,7 +199,7 @@ Select-String -Path *.md,docs/*.md -Pattern 'PLACEHOLDER|REPLACE_WITH|PENDING|DE
 ```bash
 npm install
 npm run dev                 # local: SPA :8090, APIs :3001/:3002/:3003
-npm test                    # 53 tests
+npm test                    # 59 tests
 npm run seed                # demo accounts (invite blood2026)
 npm run evidence:capture    # regenerate DRV-05 / DON-14 / DON-16 evidence
 npm run zip:all             # Lambda zips for Floci

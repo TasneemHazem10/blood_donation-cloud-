@@ -15,7 +15,7 @@ Local `TEST_MODE=1` skips Turnstile and `EMAIL_MODE=log` records emails instead 
 ```powershell
 node --version          # must be 22 or newer
 npm install
-npm test                # expect: 53 tests, 53 pass, 0 fail
+npm test                # expect: 59 tests, 59 pass, 0 fail
 npm run dev             # starts APIs on 3001/3002/3003 and SPA on 8090
 ```
 
@@ -275,7 +275,7 @@ from every screenshot before adding it to the report.
 
 ## Quick pass/fail checklist
 
-- [ ] `npm test` → 53/53
+- [ ] `npm test` → 59/59
 - [ ] Local smoke → 22/22
 - [ ] Floci smoke → 22/22, `storage:"s3"`
 - [ ] All health endpoints → 200

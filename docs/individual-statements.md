@@ -1,10 +1,10 @@
 # Individual contribution statements
 
-These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (53/53), local + Floci + public Cloudflare/Neon smoke (22/22 each) and the captured files in `evidence/`. The team repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**; `main` and three `feature/*` branches are pushed, but there is no PR, `v1.0` tag or per-student commit yet; no authorship claim is made for the import commit. Local browser screenshots are `evidence/E2E-04-*.png` and public browser screenshots are `evidence/PUBLIC-E2E-*.png`. Public deployment evidence is `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`. The demo video and real API keys remain untested/pending. Replace every remaining `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
+These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (59/59), local + Floci + public Cloudflare/Neon smoke (22/22 each) and the captured files in `evidence/`. The team repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**; `main` and three `feature/*` branches are pushed, and `v1.0` plus `bdo-organizer-v1.0.zip` were created from the verified deployment commit, but there are still no PRs/reviews or real per-student commits; no authorship claim is made for the import commit. Local browser screenshots are `evidence/E2E-04-*.png` and public browser screenshots are `evidence/PUBLIC-E2E-*.png`. Public deployment evidence is `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`. The demo video and real Turnstile credentials remain untested/pending. Replace every remaining `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
 
 Shared evidence placeholders used below:
 
-* `[REPO_URL]` — **https://github.com/TasneemHazem10/blood_donation-cloud-.git** (`main` and the three feature branches are pushed; PRs/tag still pending).
+* `[REPO_URL]` — **https://github.com/TasneemHazem10/blood_donation-cloud-.git** (`main`, the three feature branches, `v1.0` and the source ZIP are pushed/created; PRs and real per-student commits still pending).
 * `[PR_LINK_*]`, `[COMMIT_HASH_*]` — real PR/commit links per contribution.
 * `[EVIDENCE: ...]` — screenshot, copied request/response, SQL row image or log excerpt.
 * `[DEPLOYED_URL]` — **https://bdo-organizer.separate-scowl.workers.dev** (public Cloudflare URL, not localhost).
@@ -80,9 +80,9 @@ Verified by local and Floci smoke, which cover 400/401/403/404/409 cases; captur
 
 ### 6. Tests
 
-Automated cases DRV-01–DRV-13 are in `docs/testing.md` (health, create, slot add, filters, report, missing field, unknown id, wrong owner, overlap, full slot, cancel/delete, future completion). They are implemented in `tests/drive-api.test.js` and `tests/integration.test.js` with `node --test` and Supertest; `npm test` reports 53 tests, 53 pass, 0 fail across all six test files.
+Automated cases DRV-01–DRV-13 are in `docs/testing.md` (health, create, slot add, filters, report, missing field, unknown id, wrong owner, overlap, full slot, cancel/delete, future completion). They are implemented in `tests/drive-api.test.js` and `tests/integration.test.js` with `node --test` and Supertest; `npm test` reports 59 tests, 59 pass, 0 fail across all seven test files.
 
-Verified by `npm test` (53/53 overall) and local + Floci smoke (22/22 each), plus the public Cloudflare/Neon run in `evidence/PUBLIC-SMOKE.txt` (drive create, slot create, report with `storage:"database"`). DRV-05 additionally has live external-API evidence in `evidence/DRV-05-live-geocode.txt` (real Nominatim coordinates, cached rows and a `?near=` result with `distanceKm`).
+Verified by `npm test` (59/59 overall) and local + Floci smoke (22/22 each), plus the public Cloudflare/Neon run in `evidence/PUBLIC-SMOKE.txt` (drive create, slot create, report with `storage:"database"`). DRV-05 additionally has live external-API evidence in `evidence/DRV-05-live-geocode.txt` (real Nominatim coordinates, cached rows and a `?near=` result with `distanceKm`).
 
 ### 7. Integration work
 
@@ -175,7 +175,7 @@ Verified by local + Floci smoke for 400/401/403/409 cases; the 429 branch is cap
 
 Automated cases DON-01–DON-16 are in `docs/testing.md`: valid registration/login, both roles, `me`, eligibility states, profile update, history, duplicate email, wrong password, missing token, role misuse, invalid profile, rate limit, deletion blocked by booking, Turnstile without token. Most are covered by `tests/donor-api.test.js` and `tests/integration.test.js`; DON-14 and the missing-token branch of DON-16 are now covered by `tests/pending-evidence.test.js` and captured in `evidence/DON-14-rate-limit.txt` and `evidence/DON-16-turnstile-missing-token.txt`. Validation with a real Turnstile widget token is still pending a live test key.
 
-Verified by `npm test` (53/53 overall), local + Floci smoke (22/22 each) and the public Workers + Neon run in `evidence/PUBLIC-SMOKE.txt` (register, login, eligibility, 401/409 cases); keep captured output for report evidence.
+Verified by `npm test` (59/59 overall), local + Floci smoke (22/22 each) and the public Workers + Neon run in `evidence/PUBLIC-SMOKE.txt` (register, login, eligibility, 401/409 cases); keep captured output for report evidence.
 
 ### 7. Integration work
 
@@ -267,9 +267,9 @@ Verified by local + Floci smoke for 400/401/403/409 cases; capture placeholder r
 
 ### 6. Tests
 
-Automated cases BOK-01–BOK-19 are in `docs/testing.md`: normal booking/cancel/check-in, reminder idempotency, ineligible donor, full slot, double booking, unknown id, donor calling check-in, wrong outcome, wrong organizer, missing internal key, daily internal route. They are implemented in `tests/booking-api.test.js`, `tests/shared-rules.test.js` and `tests/integration.test.js`; the full suite is 53/53 PASS and both smoke runs are 22/22 PASS.
+Automated cases BOK-01–BOK-19 are in `docs/testing.md`: normal booking/cancel/check-in, reminder idempotency, ineligible donor, full slot, double booking, unknown id, donor calling check-in, wrong outcome, wrong organizer, missing internal key, daily internal route. They are implemented in `tests/booking-api.test.js`, `tests/shared-rules.test.js` and `tests/integration.test.js`; the full suite is 59/59 PASS and both smoke runs are 22/22 PASS.
 
-Verified by `npm test` (53/53), local + Floci smoke (22/22 each, report `storage:"s3"` on Floci) and the public Workers + Neon run in `evidence/PUBLIC-SMOKE.txt` (booking 201/409, reminders 1 sent + 1 skipped, check-in `attended`, donation recorded); keep captured output for report evidence.
+Verified by `npm test` (59/59), local + Floci smoke (22/22 each, report `storage:"s3"` on Floci) and the public Workers + Neon run in `evidence/PUBLIC-SMOKE.txt` (booking 201/409, reminders 1 sent + 1 skipped, check-in `attended`, donation recorded); keep captured output for report evidence.
 
 ### 7. Integration work
 

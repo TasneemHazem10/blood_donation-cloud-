@@ -4,18 +4,17 @@
 
 The workspace now contains a real local Git repository:
 
-* `main` currently has an import commit followed by several documentation/evidence commits,
-  all made with the machine's configured identity, **Tasneem Hazem <tasneemhazem27@gmail.com>**:
-  * `2139745c54024bc98d58454a3fe07a8da2871db7` — initial project import (three services, SPA, infra, docs, tests and captured evidence).
-  * `f4e318d` — documentation reconciliation (53 tests, evidence capture, local Git state).
-  * `a2d2660`, `96b3628`, `89cb282` — Git note corrections and browser E2E-04 evidence.
-
-  These are *import/documentation* commits, not a claim that Tasneem wrote all three services.
-* Three branches exist: `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking`.
-* The remote **https://github.com/TasneemHazem10/blood_donation-cloud-.git** is configured as `origin`;
-  `main` (HEAD `5ffa0ef`) and all three feature branches have been pushed.
-* There is **no pull request, no review, no `v1.0` tag and no per-student commit yet**.
-  `.github/CODEOWNERS` still contains placeholder handles for Habiba and Hala.
+* `main` has the initial import plus documentation, evidence and runtime-hardening commits made
+  with the machine's configured identity, **Tasneem Hazem <tasneemhazem27@gmail.com>**. These are
+  *import/documentation/hardening* commits, not a claim that Tasneem wrote all three services.
+* Three branches exist and are kept in sync with `main`: `feature/s1-drive`, `feature/s2-donor`,
+  `feature/s3-booking`.
+* The remote **https://github.com/TasneemHazem10/blood_donation-cloud-.git** is configured as
+  `origin`; `main` and all three feature branches have been pushed.
+* The `v1.0` tag and `bdo-organizer-v1.0.zip` were created from the verified public-deployment
+  commit. They must be recreated if the final demonstrated commit changes.
+* There are still **no pull requests, reviews or real per-student commits**. `.github/CODEOWNERS`
+  contains placeholder handles for Habiba and Hala.
 
 ## Required next steps (must be done by the students)
 

@@ -152,13 +152,13 @@ All three Workers set `compatibility_flags = ["global_fetch_strictly_public"]` b
 
 ## 7. GitHub repository
 
-**PARTIAL.** The repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**. The latest `main` and the three branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` have been pushed to that remote. `main` contains the import commit plus documentation/evidence commits by Tasneem's configured identity (*not* a claim that she wrote every service). There is still **no pull request, review, `v1.0` tag or per-student commit**. The intended structure is:
+**PARTIAL.** The repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**. The latest `main` and the three branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` have been pushed to that remote. `main` contains the import commit plus documentation/evidence commits by Tasneem's configured identity (*not* a claim that she wrote every service). There are still **no pull requests/reviews or real per-student commits**. The `v1.0` tag and `bdo-organizer-v1.0.zip` were created from the current verified `main` state; they must be recreated after the authentic student history lands. The intended structure is:
 
-* `main` — protected, deployable state; `feature/s1-*`, `feature/s2-*`, `feature/s3-*` — one branch per student; pull requests reviewed by another student; `v1.0` tag used for the submitted ZIP.
+* `main` — deployable state (branch protection still to be enabled); `feature/s1-*`, `feature/s2-*`, `feature/s3-*` — one branch per student; pull requests reviewed by another student; `v1.0` tag used for the submitted ZIP.
 * `.github/CODEOWNERS` maps `services/drive/` to Habiba, `services/donor/` to Tasneem, `services/booking/` to Hala and shared folders to all three. The real GitHub handles must replace the placeholders before submission.
 * Each student must commit their own service from their own Git identity; the code in this workspace is not evidence of authorship by itself.
 
-To fill this section: create the repository, push `main`, make one real commit per student on their branch with their own Git identity, open and merge the three PRs, set the CODEOWNERS handles, tag `v1.0`, then run `git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0`. Step-by-step commands are in [`docs/git-workflow.md`](git-workflow.md). Repository URL: **https://github.com/TasneemHazem10/blood_donation-cloud-.git**. Insert the three PR/commit links here: **[PR_LINK_HABIBA]**, **[PR_LINK_TASNEEM]**, **[PR_LINK_HALA]**.
+To complete this section: make one real commit per student on their branch with their own Git identity, open and merge the three PRs, set the CODEOWNERS handles, fill the links below, then recreate `v1.0` and `bdo-organizer-v1.0.zip` from the final demonstrated commit. Step-by-step commands are in [`docs/git-workflow.md`](git-workflow.md). Repository URL: **https://github.com/TasneemHazem10/blood_donation-cloud-.git**. Insert the three PR/commit links here: **[PR_LINK_HABIBA]**, **[PR_LINK_TASNEEM]**, **[PR_LINK_HALA]**.
 
 ---
 
@@ -170,7 +170,7 @@ To fill this section: create the repository, push `main`, make one real commit p
 
 ## 9. Testing
 
-`npm test` → **53 tests, 53 pass, 0 fail** (six test files). Local smoke → **22/22 PASS**. Floci smoke through API Gateway → **22/22 PASS**, report `storage:"s3"`. Public Cloudflare + Neon smoke → **22/22 PASS** with report `storage:"database"`. Evidence files: `evidence/DRV-05-live-geocode.txt`, `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt`, `evidence/FLOCI-SMOKE.txt`, `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`, `evidence/RESEND-LIVE-EMAIL.txt`. Full case-by-case table with actual results and evidence links: [`docs/testing.md`](testing.md).
+`npm test` → **59 tests, 59 pass, 0 fail** (seven test files). Local smoke → **22/22 PASS**. Floci smoke through API Gateway → **22/22 PASS**, report `storage:"s3"`. Public Cloudflare + Neon smoke → **22/22 PASS** with report `storage:"database"`. Evidence files: `evidence/DRV-05-live-geocode.txt`, `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt`, `evidence/FLOCI-SMOKE.txt`, `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`, `evidence/RESEND-LIVE-EMAIL.txt`. Full case-by-case table with actual results and evidence links: [`docs/testing.md`](testing.md).
 
 | Case group | Covered | Result |
 | --- | --- | --- |
@@ -191,7 +191,7 @@ Open items with reason and proposed improvement are tracked in [`docs/limitation
 | --- | --- | --- |
 | Temporary Cloudflare preview account must be claimed or the public URLs may expire | No permanent Cloudflare login was available while deploying | Claim the preview account using the one-time link supplied out-of-band, or redeploy to a permanent account and update the docs |
 | No Cloudflare Cron Trigger on the temporary free account | Preview plan allows 0 cron triggers | Attach `0 6 * * *` on a permanent account; until then use the organizer Reminder button or `POST /internal/reminders/daily` |
-| No PRs, tag or ZIP (section 7) | Student GitHub handles/identities unknown | Add real per-student commits/PRs, tag `v1.0`, zip that tag |
+| No PRs/reviews or real per-student commits (section 7); tag/ZIP exist but need recreating afterwards | Student GitHub handles/identities unknown | Add real per-student commits/PRs, then recreate `v1.0` and zip that tag |
 | No demo video (section 8) | Must be created by a person | Record ≤5-minute walkthrough from the public URL |
 | Public-URL browser evidence is a static screenshot, not an interactive recording | Headless Chrome captured the deployed home and drives pages; the video still has to show the journey | Record the demo video from the public URL |
 | In-memory login rate limiter and in-process reminder state | Simplifies three-runtime compatibility | Add Cloudflare WAF rate limiting and a shared durable store |
