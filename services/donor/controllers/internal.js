@@ -2,7 +2,7 @@
 
 const { getStore, now } = require('../../../shared/context');
 const { newId } = require('../../../shared/crypto');
-const { badRequest, notFound } = require('../../../shared/errors');
+const { badRequest, conflict, notFound } = require('../../../shared/errors');
 const { ok, created } = require('../../../shared/http');
 const { idParam, dateField } = require('../../../shared/validate');
 const { evaluate } = require('../services/eligibility');
@@ -30,12 +30,21 @@ async function recordDonation(ctx) {
 
   const donor = await store().get('bdo_donors', donorId);
   if (!donor) throw notFound('Donor not found');
+  // Check-in records the donation on the drive date, so the 56-day interval
+  // must be enforced here too, not only when the donor first books.
+  const evaluation = evaluate(donor, date);
+  if (!evaluation.eligible) throw conflict(evaluation.reason || 'Donor is not eligible to donate on that date');
+
   const donation = { id, donorId, driveId, date, recordedAt: now() };
-  await store().insert('bdo_donations', donation);
+  const saved = await store().insert('bdo_donations', donation);
+  if (!saved) {
+    const raced = await store().get('bdo_donations', id);
+    return ok({ donation: raced || donation, duplicate: true });
+  }
   if (!donor.lastDonationDate || donor.lastDonationDate < date) {
     await store().update('bdo_donors', donorId, { lastDonationDate: date });
   }
-  return created({ donation, duplicate: false });
+  return created({ donation: saved, duplicate: false });
 }
 
 async function getDonor(ctx) {

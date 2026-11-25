@@ -59,10 +59,31 @@ async function activeBookings(ctx) {
   return ok({ count: rows.length, bookings: rows });
 }
 
+// Donor account deletion calls this before removing the donor record. The
+// booking history stays for reports, but the personal data is removed.
+async function anonymizeDonor(ctx) {
+  const donorId = idParam(ctx.params);
+  let bookings = 0;
+  let reminders = 0;
+  for (const booking of await store().search('bdo_bookings', 'donorId', donorId)) {
+    await store().update('bdo_bookings', booking.id, {
+      donorName: 'Deleted donor', donorEmail: '', donorPhone: '', bloodType: null
+    });
+    bookings += 1;
+  }
+  for (const reminder of await store().search('bdo_reminders', 'donorId', donorId)) {
+    await store().update('bdo_reminders', reminder.id, {
+      to: '', donorName: 'Deleted donor', error: 'Donor account deleted'
+    });
+    reminders += 1;
+  }
+  return ok({ donorId, bookings, reminders });
+}
+
 // Called by the EventBridge/Cloudflare cron rule with the internal key.
 async function dailyReminders(ctx) {
   const date = ctx.body && ctx.body.date ? ctx.body.date : rules.tomorrow();
   return ok(await sendForDate(date));
 }
 
-module.exports = { stats, cancelDriveBookings, activeBookings, dailyReminders };
+module.exports = { stats, cancelDriveBookings, activeBookings, anonymizeDonor, dailyReminders };

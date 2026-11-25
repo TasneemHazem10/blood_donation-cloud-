@@ -2,6 +2,7 @@
 # Publishes the single-page website to S3 and points it at the deployed API.
 source "$(dirname "$0")/config.sh"
 load_state
+ensure_secrets
 # The AWS CLI treats spaces in local paths as part of the argument unless they
 # are relative to the current directory.
 cd "$ROOT" || exit 1

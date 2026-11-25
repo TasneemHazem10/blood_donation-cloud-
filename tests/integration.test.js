@@ -211,11 +211,12 @@ check('IN01', 'three services complete a real HTTP booking-to-report lifecycle',
     .set('Authorization', `Bearer ${donor3.token}`);
   assert.equal(donorDeleted.status, 204);
 
-  const driveDeleted = await request(driveBase).delete(`/api/drives/${id}`)
+  // Attendance history remains, so the drive must stay for the audit trail.
+  const stillBlocked = await request(driveBase).delete(`/api/drives/${id}`)
     .set('Authorization', `Bearer ${orgToken}`);
-  assert.equal(driveDeleted.status, 204, JSON.stringify(driveDeleted.body));
-  const gone = await request(driveBase).get(`/api/drives/${id}`);
-  assert.equal(gone.status, 404);
+  assert.equal(stillBlocked.status, 409);
+  const stillThere = await request(driveBase).get(`/api/drives/${id}`);
+  assert.equal(stillThere.status, 200);
 });
 
 check('IN02', 'real HTTP error cases cover 400/401/403/404/409', async () => {

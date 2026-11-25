@@ -10,7 +10,7 @@ This document lists **every route defined in the three `routes.js` files**. It i
 | --- | --- | --- | --- |
 | Local (`npm run dev`) | `http://localhost:3001` | `http://localhost:3002` | `http://localhost:3003` |
 | Floci | one API Gateway base URL from `infra/.state` (`API_URL`), routes dispatch by path | same | same |
-| Cloudflare Workers | `https://bdo-drive.polarized-tarsal.workers.dev` | `https://bdo-donor.polarized-tarsal.workers.dev` | `https://bdo-booking.polarized-tarsal.workers.dev` |
+| Cloudflare Workers | `https://bdo-drive.separate-scowl.workers.dev` | `https://bdo-donor.separate-scowl.workers.dev` | `https://bdo-booking.separate-scowl.workers.dev` |
 
 On Floci all three services share one front door; on Workers and locally each service has its own base URL configured through `DRIVE_SERVICE_URL`, `DONOR_SERVICE_URL`, `BOOKING_SERVICE_URL` (or `window.BDO.services` in the browser).
 

@@ -1,19 +1,19 @@
 PUBLIC CLOUDFLARE WORKERS + NEON DEPLOYMENT EVIDENCE
-capturedAt: 2026-11-25T12:18:10.796Z
-frontend: https://bdo-organizer.polarized-tarsal.workers.dev
-drive:    https://bdo-drive.polarized-tarsal.workers.dev
-donor:    https://bdo-donor.polarized-tarsal.workers.dev
-booking:  https://bdo-booking.polarized-tarsal.workers.dev
+capturedAt: 2026-11-25T15:11:09.718Z
+frontend: https://bdo-organizer.separate-scowl.workers.dev
+drive:    https://bdo-drive.separate-scowl.workers.dev
+donor:    https://bdo-donor.separate-scowl.workers.dev
+booking:  https://bdo-booking.separate-scowl.workers.dev
 
 --- HEALTH CHECKS (live public HTTPS) ---
-drive: HTTP 200 {"status":"ok","service":"drive","time":"2026-11-25T12:18:11.021Z"}
-  access-control-allow-origin: https://bdo-organizer.polarized-tarsal.workers.dev
+drive: HTTP 200 {"status":"ok","service":"drive","time":"2026-11-25T15:11:10.389Z"}
+  access-control-allow-origin: https://bdo-organizer.separate-scowl.workers.dev
   cache-control: no-store
-donor: HTTP 200 {"status":"ok","service":"donor","time":"2026-11-25T12:18:11.202Z"}
-  access-control-allow-origin: https://bdo-organizer.polarized-tarsal.workers.dev
+donor: HTTP 200 {"status":"ok","service":"donor","time":"2026-11-25T15:11:10.646Z"}
+  access-control-allow-origin: https://bdo-organizer.separate-scowl.workers.dev
   cache-control: no-store
-booking: HTTP 200 {"status":"ok","service":"booking","time":"2026-11-25T12:18:11.421Z"}
-  access-control-allow-origin: https://bdo-organizer.polarized-tarsal.workers.dev
+booking: HTTP 200 {"status":"ok","service":"booking","time":"2026-11-25T15:11:10.897Z"}
+  access-control-allow-origin: https://bdo-organizer.separate-scowl.workers.dev
   cache-control: no-store
 
 --- FRONTEND CONFIG (public static asset, no secrets) ---
@@ -24,18 +24,18 @@ js/config.js: HTTP 200
   booking URL present: true
 
 --- NEON POSTGRES ROWS (counts only; no secrets or JWTs) ---
-  bdo_drives: 9 rows
-  bdo_slots: 9 rows
-  bdo_donors: 18 rows
-  bdo_users: 18 rows
-  bdo_bookings: 9 rows
-  bdo_reminders: 14 rows
-  bdo_donations: 4 rows
-  bdo_reports: 3 rows
+  bdo_drives: 12 rows
+  bdo_slots: 12 rows
+  bdo_donors: 29 rows
+  bdo_users: 29 rows
+  bdo_bookings: 12 rows
+  bdo_reminders: 20 rows
+  bdo_donations: 6 rows
+  bdo_reports: 6 rows
   bdo_geocodes: 0 rows
-  latest booking id: drv_3203b69e-e03f-45c4-bc2d-087a2328d613__donor-mww39win@demo.org
+  latest booking id: drv_5e4c5aa5-5abb-40ef-a577-e596ff9d6edf__donor-mww9ggwk@demo.org
   latest booking status: attended
-  latest booking createdAt: 2026-11-25T12:17:47.039Z
+  latest booking createdAt: 2026-11-25T15:10:52.031Z
 
 --- CROSS-SERVICE CONFIGURATION NOTE ---
 All three Workers set compatibility_flags = ["global_fetch_strictly_public"].

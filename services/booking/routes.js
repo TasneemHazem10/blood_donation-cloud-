@@ -20,5 +20,6 @@ module.exports = [
   route('GET', '/internal/drives/:id/stats', internal.stats, { internal: true }),
   route('POST', '/internal/drives/:id/cancellations', internal.cancelDriveBookings, { internal: true }),
   route('GET', '/internal/donors/:id/active-bookings', internal.activeBookings, { internal: true }),
+  route('POST', '/internal/donors/:id/anonymize', internal.anonymizeDonor, { internal: true }),
   route('POST', '/internal/reminders/daily', internal.dailyReminders, { internal: true })
 ];

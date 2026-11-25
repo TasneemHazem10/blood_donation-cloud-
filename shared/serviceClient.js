@@ -3,7 +3,7 @@
 // Server-to-server HTTP calls. On a PC and on Floci these target the other
 // Express services; on Cloudflare Workers they target the other Workers.
 const { config } = require('./config');
-const { HttpError } = require('./errors');
+const { HttpError, unavailable } = require('./errors');
 
 let fetchImpl = (...args) => globalThis.fetch(...args);
 let serviceBindings = null;
@@ -22,10 +22,18 @@ const BASES = {
 async function callService(service, method, path, options = {}) {
   const settings = config();
   const resolveBase = BASES[service];
-  if (!resolveBase) throw new Error(`Unknown service: ${service}`);
-  const base = resolveBase(settings);
-  if (!base) throw new Error(`Unknown service: ${service}`);
-  const url = new URL(`${base.replace(/\/$/, '')}${path}`);
+  if (!resolveBase) throw unavailable(`Service ${service} is not configured`);
+  // Resolve the Worker binding first: service bindings make the URL host
+  // cosmetic, so a missing workers.dev URL must not break a bound call.
+  const binding = serviceBindings && serviceBindings[service];
+  const base = binding ? `https://${service}.internal` : resolveBase(settings);
+  if (!base) throw unavailable(`${service} service URL is not configured`);
+  let url;
+  try {
+    url = new URL(`${String(base).replace(/\/$/, '')}${path}`);
+  } catch {
+    throw unavailable(`${service} service URL is invalid`);
+  }
   for (const [key, value] of Object.entries(options.query || {})) {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value));
   }
@@ -40,7 +48,6 @@ async function callService(service, method, path, options = {}) {
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
     signal: AbortSignal.timeout(10000)
   };
-  const binding = serviceBindings && serviceBindings[service];
   let response;
   try {
     response = binding

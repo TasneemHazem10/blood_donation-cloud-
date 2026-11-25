@@ -122,7 +122,7 @@ check('DR05', 'organizer updates a drive; other organizers and unknown ids fail'
 
   const other = await request(app).put(`/api/drives/${driveId}`).set('Authorization', `Bearer ${otherOrgToken}`)
     .send({ title: 'Hijacked' });
-  assert.equal(other.status, 409);
+  assert.equal(other.status, 403);
   assert.match(other.body.error.message, /Only the organizer/);
 
   const missing = await request(app).put('/api/drives/drv_missing').set('Authorization', `Bearer ${orgToken}`)
@@ -288,9 +288,14 @@ check('DR12', 'deleting a drive is blocked by active bookings then succeeds', as
   statsBody = { booked: 1, confirmed: 1, attended: 0, noShow: 0, cancelled: 0, total: 1 };
   const blocked = await request(app).delete(`/api/drives/${driveId}`).set('Authorization', `Bearer ${orgToken}`);
   assert.equal(blocked.status, 409);
-  assert.match(blocked.body.error.message, /active bookings/);
+  assert.match(blocked.body.error.message, /bookings before deleting/);
 
+  // Attendance history is also a booking; deleting it would orphan donations.
   statsBody = { booked: 1, confirmed: 0, attended: 1, noShow: 0, cancelled: 0, total: 1 };
+  const blockedHistory = await request(app).delete(`/api/drives/${driveId}`).set('Authorization', `Bearer ${orgToken}`);
+  assert.equal(blockedHistory.status, 409);
+
+  statsBody = { booked: 0, confirmed: 0, attended: 0, noShow: 0, cancelled: 1, total: 1 };
   const deleted = await request(app).delete(`/api/drives/${driveId}`).set('Authorization', `Bearer ${orgToken}`);
   assert.equal(deleted.status, 204);
 

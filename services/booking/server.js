@@ -5,5 +5,13 @@ const { setStore } = require('../../shared/context');
 const { createApp } = require('./app');
 
 const port = Number(process.env.PORT || 3003);
-setStore(createStore());
-createApp().listen(port, () => console.log(`Booking service ready on http://localhost:${port}`));
+
+(async () => {
+  const store = createStore();
+  await store.init();
+  setStore(store);
+  createApp().listen(port, () => console.log(`Booking service ready on http://localhost:${port}`));
+})().catch((error) => {
+  console.error('BOOKING_STARTUP_FAILED', error);
+  process.exit(1);
+});

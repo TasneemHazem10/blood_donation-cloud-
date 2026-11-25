@@ -3,7 +3,7 @@
 // Neon Postgres data layer. One HTTP query per operation, so it also runs
 // inside a Cloudflare Worker without a TCP connection pool.
 const { neon } = require('@neondatabase/serverless');
-const { TABLES, assertTable } = require('./tables');
+const { assertTable } = require('./tables');
 
 function createNeonStore(databaseUrl) {
   if (!databaseUrl) throw new Error('DATABASE_URL is required for the Neon data layer');
@@ -13,9 +13,9 @@ function createNeonStore(databaseUrl) {
   return {
     driver: 'neon',
     async init() {
-      for (const table of TABLES) {
-        await sql.query(`CREATE TABLE IF NOT EXISTS ${table} (id text PRIMARY KEY, data jsonb NOT NULL)`);
-      }
+      // Schema DDL is applied by `infra/scripts/configure-cloudflare.js` before
+      // deploy. Running it from a Worker costs one subrequest per table on
+      // every cold start and exceeded the free plan's subrequest limit.
     },
     async get(table, id) {
       assertTable(table);

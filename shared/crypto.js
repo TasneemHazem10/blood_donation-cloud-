@@ -14,9 +14,17 @@ function base64url(bytes) {
 }
 
 function fromBase64url(value) {
+  if (typeof value !== 'string' || !/^[A-Za-z0-9_-]*$/.test(value)) {
+    throw new Error('Invalid base64url value');
+  }
   const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
   const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-  const binary = atob(padded);
+  let binary;
+  try {
+    binary = atob(padded);
+  } catch {
+    throw new Error('Invalid base64url value');
+  }
   return Uint8Array.from(binary, (char) => char.charCodeAt(0));
 }
 
@@ -61,19 +69,28 @@ async function createToken(payload, secret, maxAgeSeconds = 7 * 24 * 3600) {
 }
 
 async function verifyToken(token, secret) {
-  if (typeof token !== 'string' || token.split('.').length !== 3) throw unauthorized('A valid login token is required');
+  if (typeof token !== 'string' || token.split('.').length !== 3) {
+    throw unauthorized('A valid login token is required');
+  }
   const [headerPart, payloadPart, signaturePart] = token.split('.');
-  const key = await subtle().importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
-  const valid = await subtle().verify('HMAC', key, fromBase64url(signaturePart), encoder.encode(`${headerPart}.${payloadPart}`));
-  if (!valid) throw unauthorized('Login token is not valid');
-  let payload;
   try {
-    payload = JSON.parse(decoder.decode(fromBase64url(payloadPart)));
-  } catch {
+    // Never let malformed base64/JSON escape as a 500: every invalid token is
+    // an authentication failure, including an unexpected JWT header.
+    const header = JSON.parse(decoder.decode(fromBase64url(headerPart)));
+    if (!header || header.alg !== 'HS256') throw unauthorized('Login token is not valid');
+    const key = await subtle().importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+    const valid = await subtle().verify(
+      'HMAC', key, fromBase64url(signaturePart), encoder.encode(`${headerPart}.${payloadPart}`)
+    );
+    if (!valid) throw unauthorized('Login token is not valid');
+    const payload = JSON.parse(decoder.decode(fromBase64url(payloadPart)));
+    if (!payload || typeof payload !== 'object') throw unauthorized('Login token is not valid');
+    if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) throw unauthorized('Login token has expired');
+    return payload;
+  } catch (error) {
+    if (error && error.code === 'UNAUTHORIZED') throw error;
     throw unauthorized('Login token is not valid');
   }
-  if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) throw unauthorized('Login token has expired');
-  return payload;
 }
 
 function newId(prefix = '') {

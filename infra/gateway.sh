@@ -51,7 +51,8 @@ BOOKING_ROUTES=(
   'POST /api/bookings/{id}/cancel' 'PATCH /api/bookings/{id}/check-in'
   'POST /api/reminders/send' 'GET /api/reminders'
   'GET /internal/drives/{id}/stats' 'POST /internal/drives/{id}/cancellations'
-  'GET /internal/donors/{id}/active-bookings' 'POST /internal/reminders/daily'
+  'GET /internal/donors/{id}/active-bookings' 'POST /internal/donors/{id}/anonymize'
+  'POST /internal/reminders/daily'
 )
 
 for route in "${DRIVE_ROUTES[@]}"; do add_route "$route" "$DRIVE_INTEGRATION"; done

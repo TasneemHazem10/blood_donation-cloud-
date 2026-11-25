@@ -1,14 +1,14 @@
 'use strict';
 
 // Business rules for drive management (Student 1).
-const { badRequest, conflict, notFound } = require('../../../shared/errors');
+const { badRequest, conflict, forbidden, notFound } = require('../../../shared/errors');
 const { isDate, isTime } = require('../../../shared/validate');
 const { distanceKm } = require('../../../shared/external/geo');
 
 const STATUSES = ['scheduled', 'cancelled', 'completed'];
 
 function assertOwner(drive, user) {
-  if (drive.organizerId !== user.id) throw conflict('Only the organizer who created this drive can change it');
+  if (drive.organizerId !== user.id) throw forbidden('Only the organizer who created this drive can change it');
 }
 
 function assertEditable(drive) {

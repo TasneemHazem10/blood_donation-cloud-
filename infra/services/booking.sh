@@ -22,7 +22,7 @@ aws_f iam put-role-policy --role-name bdo-booking-role --policy-name bdo-booking
 
 aws_f logs create-log-group --log-group-name /aws/lambda/bdo-booking-service >/dev/null 2>&1 || true
 
-ENV_VARS="Variables={DATA_DRIVER=dynamo,AWS_ENDPOINT_URL=$AWS_ENDPOINT_LAMBDA,JWT_SECRET=$JWT_SECRET,INTERNAL_KEY=$INTERNAL_KEY,ORGANIZER_INVITE=$ORGANIZER_INVITE,DRIVE_SERVICE_URL=$API_URL,DONOR_SERVICE_URL=$API_URL,BOOKING_SERVICE_URL=$API_URL,CORS_ORIGINS=http://localhost:4566,EMAIL_MODE=${EMAIL_MODE:-log},BREVO_API_KEY=${BREVO_API_KEY:-},NODE_ENV=production}"
+ENV_VARS="Variables={DATA_DRIVER=dynamo,AWS_ENDPOINT_URL=$AWS_ENDPOINT_LAMBDA,JWT_SECRET=$JWT_SECRET,INTERNAL_KEY=$INTERNAL_KEY,ORGANIZER_INVITE=$ORGANIZER_INVITE,DRIVE_SERVICE_URL=$API_URL,DONOR_SERVICE_URL=$API_URL,BOOKING_SERVICE_URL=$API_URL,CORS_ORIGINS=http://localhost:4566,EMAIL_MODE=${EMAIL_MODE:-log},BREVO_API_KEY=${BREVO_API_KEY:-},RESEND_API_KEY=${RESEND_API_KEY:-},EMAIL_FROM=${EMAIL_FROM:-Blood Drive <onboarding@resend.dev>},NODE_ENV=production}"
 
 if aws_f lambda get-function --function-name bdo-booking-service >/dev/null 2>&1; then
   aws_f lambda update-function-code --function-name bdo-booking-service \

@@ -25,7 +25,7 @@ All URLs, account ids and credentials below are **placeholders**. Never commit a
 * `bash infra/deploy-all.sh` now completes: **ALL CHECKS PASSED** — drive/donor/booking health 200, drive list 200, website 200, Floci dashboard 200. API Gateway: `http://079d67cedb.execute-api.localhost.floci.io:4566`; 9 DynamoDB tables, 3 `bdo-*` Lambdas, `bdo-drive-reports` and `bdo-web` S3 buckets.
 * Floci smoke through the API Gateway: **22 PASS**, report `storage:"s3"` (`evidence/FLOCI-SMOKE.txt`).
 * Booking ids use `driveId__donorId`; `idParam()` accepts them and cancel/check-in work.
-* Public Cloudflare/Neon deployment is **live**: `https://bdo-organizer.polarized-tarsal.workers.dev`; public smoke **22 PASS**, health/CORS/config/Neon evidence in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots in `evidence/PUBLIC-E2E-*.png`. Only the demo video still needs to be recorded.
+* Public Cloudflare/Neon deployment is **live**: `https://bdo-organizer.separate-scowl.workers.dev`; public smoke **22 PASS**, health/CORS/config/Neon evidence in `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`; public browser screenshots in `evidence/PUBLIC-E2E-*.png`. Only the demo video still needs to be recorded.
 
 ---
 
@@ -196,7 +196,7 @@ npx wrangler deploy --config services/donor/wrangler.toml   # -> <DONOR_WORKER_U
 npx wrangler deploy --config services/booking/wrangler.toml # -> <BOOKING_WORKER_URL>
 ```
 
-Each `wrangler.toml` sets `main = "dist/worker.js"`, `DATA_DRIVER = "neon"`, `NODE_ENV = "production"` and `CORS_ORIGINS = "https://bdo-organizer.polarized-tarsal.workers.dev"` (verified in `evidence/PUBLIC-DEPLOYMENT.txt`). All three also set `compatibility_flags = ["global_fetch_strictly_public"]`. Cross-service calls use service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking) to avoid preview-account `522` errors. The Booking Worker uses the `EMAIL_MODE=live` secret with a git-ignored `RESEND_API_KEY`.
+Each `wrangler.toml` sets `main = "dist/worker.js"`, `DATA_DRIVER = "neon"`, `NODE_ENV = "production"` and `CORS_ORIGINS = "https://bdo-organizer.separate-scowl.workers.dev"` (verified in `evidence/PUBLIC-DEPLOYMENT.txt`). All three also set `compatibility_flags = ["global_fetch_strictly_public"]`. Cross-service calls use service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking) to avoid preview-account `522` errors. The Booking Worker uses the `EMAIL_MODE=live` secret with a git-ignored `RESEND_API_KEY`.
 
 ### 3.4 Secrets and variables
 
@@ -269,7 +269,7 @@ Deploy:
 npx wrangler deploy --config frontend/wrangler.toml   # -> <PAGES_OR_WORKERS_SITE_URL>
 ```
 
-If using classic Cloudflare Pages instead, create a Pages project named `bdo-organizer` and upload `frontend/`; then set the same `window.BDO` values through the Pages build output. The report uses the live public URL **https://bdo-organizer.polarized-tarsal.workers.dev**, never `localhost`.
+If using classic Cloudflare Pages instead, create a Pages project named `bdo-organizer` and upload `frontend/`; then set the same `window.BDO` values through the Pages build output. The report uses the live public URL **https://bdo-organizer.separate-scowl.workers.dev**, never `localhost`.
 
 ### 3.6 Cloudflare cron status — checklist
 

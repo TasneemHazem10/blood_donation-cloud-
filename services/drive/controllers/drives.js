@@ -97,12 +97,16 @@ async function changeStatus(ctx) {
   if (status === 'completed' && drive.date > new Date().toISOString().slice(0, 10)) {
     throw conflict('A future drive cannot be completed');
   }
+  // Flip the drive first with a CAS. Side effects run afterwards so a slow or
+  // unavailable booking service cannot leave a cancelled drive still bookable.
+  const updated = await store().cas('bdo_drives', id, { status, statusChangedAt: now() }, { status: 'scheduled' });
+  if (!updated) throw conflict('Drive status changed. Please refresh and try again.');
   if (status === 'cancelled') {
-    await callService('booking', 'POST', `/internal/drives/${id}/cancellations`, { body: {} });
+    await callService('booking', 'POST', `/internal/drives/${id}/cancellations`, { body: {} })
+      .catch((error) => console.error('DRIVE_CANCEL_BOOKINGS_FAILED', error.message));
     const slots = await slotsFor(id);
     for (const slot of slots) await store().update('bdo_slots', slot.id, { booked: 0 });
   }
-  const updated = await store().update('bdo_drives', id, { status, statusChangedAt: now() });
   return ok(updated);
 }
 
@@ -111,7 +115,9 @@ async function deleteDrive(ctx) {
   const drive = rules.requireDrive(await store().get('bdo_drives', id));
   rules.assertOwner(drive, ctx.user);
   const stats = await callService('booking', 'GET', `/internal/drives/${id}/stats`);
-  if (stats.confirmed > 0) throw conflict('Cancel the drive first: it still has active bookings');
+  // booked includes confirmed, attended and no-show rows; deleting any of them
+  // would orphan reports and donations.
+  if (stats.booked > 0) throw conflict('Cancel or remove all bookings before deleting this drive');
   for (const slot of await slotsFor(id)) await store().remove('bdo_slots', slot.id);
   for (const report of await store().search('bdo_reports', 'driveId', id)) await store().remove('bdo_reports', report.id);
   await store().remove('bdo_drives', id);
@@ -166,10 +172,12 @@ async function getReport(ctx) {
   rules.assertOwner(drive, ctx.user);
   const stats = await callService('booking', 'GET', `/internal/drives/${driveId}/stats`);
   const report = rules.buildReport(drive, await slotsFor(driveId), stats);
-  const storage = await saveReportSnapshot(report);
-  const saved = { id: newId('rpt'), driveId, ...report, ...storage };
-  await store().put('bdo_reports', saved);
-  return ok(saved);
+  // The S3 key needs the report id, so generate it before taking the snapshot.
+  const saved = { id: newId('rpt'), driveId, ...report };
+  const storage = await saveReportSnapshot(saved);
+  const stored = { ...saved, ...storage };
+  await store().put('bdo_reports', stored);
+  return ok(stored);
 }
 
 async function listReports(ctx) {

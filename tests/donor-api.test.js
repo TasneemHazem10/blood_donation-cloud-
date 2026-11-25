@@ -20,6 +20,7 @@ let activeBookings = { count: 0, bookings: [] };
 setServiceFetch(async (url) => {
   const parsed = new URL(String(url));
   if (parsed.pathname.endsWith('/active-bookings')) return jsonResponse(200, activeBookings);
+  if (parsed.pathname.endsWith('/anonymize')) return jsonResponse(200, { bookings: 0, reminders: 0 });
   return jsonResponse(500, { error: { message: `Unexpected stub call ${parsed.pathname}` } });
 });
 

@@ -153,10 +153,10 @@ This is the public deployment required by the final-phase plan. It uses three Cl
 
 | Component | Public URL |
 |---|---|
-| Website | **https://bdo-organizer.polarized-tarsal.workers.dev** |
-| Drive API | https://bdo-drive.polarized-tarsal.workers.dev |
-| Donor/Eligibility API | https://bdo-donor.polarized-tarsal.workers.dev |
-| Booking/Reminder API | https://bdo-booking.polarized-tarsal.workers.dev |
+| Website | **https://bdo-organizer.separate-scowl.workers.dev** |
+| Drive API | https://bdo-drive.separate-scowl.workers.dev |
+| Donor/Eligibility API | https://bdo-donor.separate-scowl.workers.dev |
+| Booking/Reminder API | https://bdo-booking.separate-scowl.workers.dev |
 
 The supplied Neon database has `infra/db/schema.sql` applied. All three health endpoints return 200 with the website origin in `Access-Control-Allow-Origin`, the deployed `frontend/js/config.js` points at the three public Worker URLs, and `npm run smoke` passes **22/22** against the public deployment. Evidence: `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`.
 
@@ -199,10 +199,10 @@ On Windows PowerShell, use `$env:NAME='value'` instead of `export NAME='value'`.
 Verify manually in a browser and from a phone:
 
 ```text
-https://bdo-organizer.polarized-tarsal.workers.dev
-https://bdo-drive.polarized-tarsal.workers.dev/api/health/drive
-https://bdo-donor.polarized-tarsal.workers.dev/api/health/donor
-https://bdo-booking.polarized-tarsal.workers.dev/api/health/booking
+https://bdo-organizer.separate-scowl.workers.dev
+https://bdo-drive.separate-scowl.workers.dev/api/health/drive
+https://bdo-donor.separate-scowl.workers.dev/api/health/donor
+https://bdo-booking.separate-scowl.workers.dev/api/health/booking
 ```
 
 Never commit `.dev.vars`, `.env`, `infra/secrets.env` or real credentials.

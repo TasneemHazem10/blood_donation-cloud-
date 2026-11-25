@@ -38,6 +38,10 @@ async function createBooking(ctx) {
   }
 
   await callService('drive', 'POST', `/internal/drives/${driveId}/slots/${slotId}/reservation`, { body: {} });
+  const release = async () => {
+    await callService('drive', 'DELETE', `/internal/drives/${driveId}/slots/${slotId}/reservation`, { body: {} })
+      .catch((error) => console.error('SEAT_RELEASE_FAILED', error.message));
+  };
 
   const booking = {
     id: key,
@@ -57,15 +61,27 @@ async function createBooking(ctx) {
     createdAt: now()
   };
 
+  let saved;
   try {
-    await store().insert('bdo_bookings', booking);
+    // insert() is conditional in every driver: two concurrent requests cannot
+    // both create the same booking. A cancelled/no-show record is reactivated
+    // with a CAS so its history is preserved.
+    saved = await store().insert('bdo_bookings', booking);
+    if (!saved) {
+      const previous = await store().get('bdo_bookings', key);
+      if (previous && ['confirmed', 'attended'].includes(previous.status)) {
+        throw conflict('You already have a booking for this drive');
+      }
+      saved = previous
+        ? await store().cas('bdo_bookings', key, {
+          ...booking, status: rules.ACTIVE, createdAt: previous.createdAt || booking.createdAt, rebookedAt: now()
+        }, { status: previous.status })
+        : null;
+    }
+    if (!saved) throw conflict('Booking state changed. Please refresh and try again.');
   } catch (error) {
-    await callService('drive', 'DELETE', `/internal/drives/${driveId}/slots/${slotId}/reservation`, { body: {} }).catch(() => {});
+    await release();
     throw error;
-  }
-  const saved = (await store().get('bdo_bookings', key)) || booking;
-  if (saved.status !== rules.ACTIVE) {
-    await store().cas('bdo_bookings', key, { ...booking, status: rules.ACTIVE }, { status: saved.status });
   }
   await notify(saved, templates.confirmation(saved), 'confirmation');
   return created({ booking: saved, message: 'Seat reserved. Confirmation email recorded.' });
@@ -109,13 +125,23 @@ async function checkIn(ctx) {
   rules.assertCanCheckIn(booking, ctx.user);
   if (booking.status === outcome) return ok({ booking, message: 'Check-in was already recorded.' });
 
-  if (outcome === 'attended') {
-    await callService('donor', 'POST', '/internal/donations', {
-      body: { donationId: booking.id, donorId: booking.donorId, driveId: booking.driveId, date: booking.driveDate }
-    });
-  }
+  // Win the status transition first. Recording a donation before the CAS can
+  // leave a donation behind when another organizer checks the donor in first.
   const updated = await store().cas('bdo_bookings', id, { status: outcome, checkedInAt: now() }, { status: 'confirmed' });
   if (!updated) throw conflict('Booking is no longer confirmed');
+
+  if (outcome === 'attended') {
+    try {
+      await callService('donor', 'POST', '/internal/donations', {
+        body: { donationId: booking.id, donorId: booking.donorId, driveId: booking.driveId, date: booking.driveDate }
+      });
+    } catch (error) {
+      // Compensate so the booking is not marked attended without its donation.
+      await store().cas('bdo_bookings', id, { status: 'confirmed', checkedInAt: null }, { status: outcome })
+        .catch((casError) => console.error('CHECKIN_ROLLBACK_FAILED', casError.message));
+      throw error;
+    }
+  }
   return ok({ booking: updated, message: outcome === 'attended' ? 'Attendance and donation recorded.' : 'Marked as no-show.' });
 }
 

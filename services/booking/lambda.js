@@ -7,14 +7,22 @@ const { createStore } = require('../../shared/store');
 const { setStore } = require('../../shared/context');
 const { createApp } = require('./app');
 
-let handler;
-let storeReady = false;
-function ensureStore() {
-  // getStore() throws when the store is unset, so track readiness explicitly.
+let storeReady = null;
+let handlerReady = null;
+
+async function ensureStore() {
   if (!storeReady) {
-    setStore(createStore({ driver: 'dynamo' }));
-    storeReady = true;
+    storeReady = (async () => {
+      const store = createStore({ driver: 'dynamo' });
+      await store.init();
+      setStore(store);
+      return store;
+    })().catch((error) => {
+      storeReady = null;
+      throw error;
+    });
   }
+  return storeReady;
 }
 
 function scheduledEvent(event) {
@@ -22,13 +30,13 @@ function scheduledEvent(event) {
 }
 
 exports.handler = async (event, context) => {
-  ensureStore();
+  await ensureStore();
   if (scheduledEvent(event)) {
     const { sendForDate } = require('./controllers/reminders');
     const { tomorrow } = require('./services/bookingRules');
     const date = (event.detail && event.detail.date) || tomorrow();
     return sendForDate(date);
   }
-  if (!handler) handler = serverless(createApp());
-  return handler(event, context);
+  if (!handlerReady) handlerReady = Promise.resolve(serverless(createApp()));
+  return (await handlerReady)(event, context);
 };

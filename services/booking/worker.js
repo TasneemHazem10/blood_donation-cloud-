@@ -18,10 +18,22 @@ const { setServiceBindings } = serviceClientModule;
 const { sendForDate } = remindersModule;
 const { tomorrow } = rulesModule;
 
+let storePromise = null;
+async function initialise(env) {
+  if (!storePromise) {
+    const store = createNeonStore(env.DATABASE_URL);
+    storePromise = store.init().then(() => store).catch((error) => {
+      storePromise = null;
+      throw error;
+    });
+  }
+  return storePromise;
+}
+
 export default {
   async fetch(request, env) {
     setEnv(env);
-    setStore(createNeonStore(env.DATABASE_URL));
+    setStore(await initialise(env));
     setServiceBindings({
       ...(env.DRIVE ? { drive: env.DRIVE } : {}),
       ...(env.DONOR ? { donor: env.DONOR } : {})
@@ -32,7 +44,7 @@ export default {
   // organizer button and the /internal/reminders/daily endpoint.
   async scheduled(controller, env, ctx) {
     setEnv(env);
-    setStore(createNeonStore(env.DATABASE_URL));
+    setStore(await initialise(env));
     const date = tomorrow();
     ctx.waitUntil(sendForDate(date).catch((error) => console.error('DAILY_REMINDER_FAILED', error)));
   }

@@ -179,7 +179,7 @@ check('BK06', 'cancel checks ownership and status before releasing a seat', asyn
 
   const missing = await request(app).post('/api/bookings/bkg_missing/cancel')
     .set('Authorization', `Bearer ${donorToken}`);
-  assert.equal(missing.status, 409);
+  assert.equal(missing.status, 404);
 });
 
 check('BK07', 'check-in validates outcome, ownership and records donations', async () => {

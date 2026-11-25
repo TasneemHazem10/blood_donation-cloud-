@@ -17,7 +17,7 @@ below is claimed as done until you perform it.
 | Branches `feature/s1-drive`, `feature/s2-donor`, `feature/s3-booking` | ✅ pushed (currently identical to `main`) |
 | `npm test` | ✅ 53 tests, 53 pass, 0 fail |
 | Local smoke / Floci smoke | ✅ 22/22 each; repo-owned Docker Compose Floci `ALL CHECKS PASSED` (`evidence/FLOCI-DOCKER.txt`, `evidence/FLOCI-SMOKE.txt`) |
-| Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.polarized-tarsal.workers.dev`; public smoke 22/22 |
+| Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.separate-scowl.workers.dev`; public smoke 22/22 |
 | Evidence files | ✅ `evidence/DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `FLOCI-DOCKER.txt`, `FLOCI-SMOKE.txt`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png` |
 | Report draft | ✅ `docs/report.md` sections 1–10 + appendix |
 | Three 9-item statements | ✅ `docs/individual-statements.md` |
@@ -104,10 +104,10 @@ Why: the brief requires a **public URL**. Floci is an emulator and cannot be the
 
 | Component | Live public URL |
 |---|---|
-| Website (Cloudflare Workers static assets) | **https://bdo-organizer.polarized-tarsal.workers.dev** |
-| Drive Worker | https://bdo-drive.polarized-tarsal.workers.dev |
-| Donor Worker | https://bdo-donor.polarized-tarsal.workers.dev |
-| Booking Worker | https://bdo-booking.polarized-tarsal.workers.dev |
+| Website (Cloudflare Workers static assets) | **https://bdo-organizer.separate-scowl.workers.dev** |
+| Drive Worker | https://bdo-drive.separate-scowl.workers.dev |
+| Donor Worker | https://bdo-donor.separate-scowl.workers.dev |
+| Booking Worker | https://bdo-booking.separate-scowl.workers.dev |
 
 Verified 25 Nov 2026:
 

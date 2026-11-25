@@ -48,15 +48,26 @@ function createSqliteStore(file = '.data/bdo.sqlite') {
       const next = { ...current, ...patch, updatedAt: patch.updatedAt || new Date().toISOString() };
       return this.put(table, next);
     },
-    // Conditional update: only applies the patch when all expected fields match.
+    // Conditional update in one statement. A read-then-write CAS lets two
+    // concurrent requests both observe the same status and both succeed.
     async cas(table, id, patch, expected = {}) {
       assertTable(table);
-      const current = await this.get(table, id);
-      if (!current) return null;
-      for (const [field, value] of Object.entries(expected)) {
-        if (current[field] !== value) return null;
+      const fields = Object.keys(expected);
+      for (const field of fields) {
+        if (!/^[A-Za-z0-9_]+$/.test(field)) throw new Error('Invalid expected field');
       }
-      return this.update(table, id, patch);
+      // json_extract returns the underlying SQL value, so bind the expected
+      // value directly (json(?) would compare a quoted JSON scalar instead).
+      const conditions = ['id = ?', ...fields.map((field) => `json_extract(data, '$.${field}') = ?`)];
+      const values = [
+        JSON.stringify({ ...patch, updatedAt: patch.updatedAt || new Date().toISOString() }),
+        String(id),
+        ...fields.map((field) => expected[field])
+      ];
+      const row = db.prepare(
+        `UPDATE ${table} SET data = json_patch(data, json(?)) WHERE ${conditions.join(' AND ')} RETURNING data`
+      ).get(...values);
+      return parse(row);
     },
     async remove(table, id) {
       assertTable(table);

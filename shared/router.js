@@ -4,7 +4,7 @@
 // Controllers never see req/res: they receive ctx and return { status, body }.
 const { config } = require('./config');
 const { verifyToken } = require('./crypto');
-const { unauthorized, forbidden, notFound, badRequest, toErrorBody } = require('./errors');
+const { unauthorized, forbidden, notFound, badRequest, payloadTooLarge, toErrorBody } = require('./errors');
 const { corsHeaders, jsonResponse } = require('./http');
 
 function route(method, path, handler, options = {}) {
@@ -58,7 +58,13 @@ function matchRoute(routes, method, pathname) {
     const found = definition.regex.exec(pathname);
     if (!found) continue;
     const params = {};
-    definition.keys.forEach((key, index) => { params[key] = decodeURIComponent(found[index + 1]); });
+    definition.keys.forEach((key, index) => {
+      try {
+        params[key] = decodeURIComponent(found[index + 1]);
+      } catch {
+        throw badRequest('Malformed URL path');
+      }
+    });
     return { definition, params };
   }
   return null;
@@ -69,7 +75,13 @@ async function workerFetch(routes, request) {
   const headers = corsHeaders(request.headers.get('origin'));
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
 
-  const matched = matchRoute(routes, request.method, url.pathname);
+  let matched;
+  try {
+    matched = matchRoute(routes, request.method, url.pathname);
+  } catch (error) {
+    const translated = toErrorBody(error);
+    return jsonResponse(translated.status, translated.body, headers);
+  }
   if (!matched) {
     return jsonResponse(404, { error: { code: 'NOT_FOUND', message: 'Endpoint not found' } }, headers);
   }
@@ -79,7 +91,7 @@ async function workerFetch(routes, request) {
     if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
       const text = await request.text();
       if (text) {
-        if (text.length > 20000) throw badRequest('Request body too large');
+        if (text.length > 20000) throw payloadTooLarge('Request body too large');
         try { body = JSON.parse(text); } catch { throw badRequest('Body must be valid JSON'); }
       }
     }
@@ -137,6 +149,10 @@ function normalizeServerlessBody(req, res, next) {
   if (!Buffer.isBuffer(req.body)) return next();
   const text = req.body.toString('utf8');
   if (!text) { req.body = {}; return next(); }
+  if (text.length > 20000) {
+    const translated = toErrorBody(payloadTooLarge('Request body too large'));
+    return res.status(translated.status).json(translated.body);
+  }
   try {
     req.body = JSON.parse(text);
     return next();

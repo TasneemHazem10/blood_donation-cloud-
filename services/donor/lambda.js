@@ -5,13 +5,20 @@ const { createStore } = require('../../shared/store');
 const { setStore } = require('../../shared/context');
 const { createApp } = require('./app');
 
-let handler;
-function ensure() {
-  if (!handler) {
-    setStore(createStore({ driver: 'dynamo' }));
-    handler = serverless(createApp());
+let ready = null;
+async function ensure() {
+  if (!ready) {
+    ready = (async () => {
+      const store = createStore({ driver: 'dynamo' });
+      await store.init();
+      setStore(store);
+      return serverless(createApp());
+    })().catch((error) => {
+      ready = null;
+      throw error;
+    });
   }
-  return handler;
+  return ready;
 }
 
-exports.handler = async (event, context) => ensure()(event, context);
+exports.handler = async (event, context) => (await ensure())(event, context);

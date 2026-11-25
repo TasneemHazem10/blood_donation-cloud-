@@ -23,8 +23,10 @@ function corsHeaders(requestOrigin) {
 }
 
 function jsonResponse(status, body, headers = {}) {
+  // Only an explicit 204 is bodyless. A 200 with a null body stays a 200 so
+  // callers can distinguish "success" from "no content".
   if (status === 204 || body === null || body === undefined) {
-    return new Response(null, { status: 204, headers });
+    return new Response(null, { status, headers });
   }
   return new Response(JSON.stringify(body), {
     status,

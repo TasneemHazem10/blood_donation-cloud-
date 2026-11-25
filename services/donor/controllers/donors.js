@@ -51,6 +51,8 @@ async function deleteAccount(ctx) {
   if (active.count > 0) {
     throw conflict(`Cancel your ${active.count} upcoming booking(s) before deleting your account`);
   }
+  // Keep booking/report history but remove the donor's name and email from it.
+  await callService('booking', 'POST', `/internal/donors/${id}/anonymize`, { body: {} });
   for (const donation of await store().search('bdo_donations', 'donorId', id)) {
     await store().remove('bdo_donations', donation.id);
   }
