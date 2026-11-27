@@ -2,7 +2,7 @@
 
 A complete three-service cloud application for organizing blood donation drives. Organizers publish drives and time slots, donors register and book a seat, and the Booking service checks eligibility, reserves seats atomically, records attendance and sends confirmations/reminders.
 
-This README is the **project overview, requirements map and deployment guide**. A deeper implementation walkthrough is in [`FULL_PROJECT_GUIDE.md`](FULL_PROJECT_GUIDE.md). Report material is in [`docs/`](docs/). The hand-over checklist for the remaining human artefacts (student Git identities/PRs and the demo video) is in [`FINALIZATION_README.md`](FINALIZATION_README.md). The dedicated, start-to-finish testing playbook is [`TESTING_README.md`](TESTING_README.md); the longer PowerShell walkthrough is [`TESTING_STEPS.md`](TESTING_STEPS.md). To repeat the work with the same tools and command order as the Cloud Labs PDFs (Docker/Git Bash/AWS CLI `floci` profile/Postman/REST Client/k6/Vercel-style headers/Neon), use [`docs/lab-guide.md`](docs/lab-guide.md).
+This README is the **project overview, requirements map and deployment guide**. A deeper implementation walkthrough is in [`FULL_PROJECT_GUIDE.md`](FULL_PROJECT_GUIDE.md). Report material is in [`docs/`](docs/), including the per-student minimum-requirements audit in [`docs/minimum-requirements.md`](docs/minimum-requirements.md). The hand-over checklist for the remaining human artefacts (student Git identities/PRs and the demo video) is in [`FINALIZATION_README.md`](FINALIZATION_README.md). The dedicated, start-to-finish testing playbook is [`TESTING_README.md`](TESTING_README.md); the longer PowerShell walkthrough is [`TESTING_STEPS.md`](TESTING_STEPS.md). To repeat the work with the same tools and command order as the Cloud Labs PDFs (Docker/Git Bash/AWS CLI `floci` profile/Postman/REST Client/k6/Vercel-style headers/Neon), use [`docs/lab-guide.md`](docs/lab-guide.md).
 
 ---
 
@@ -302,6 +302,7 @@ git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0
 - [`TESTING_README.md`](TESTING_README.md) — start-to-finish testing playbook for local, lab, Floci and public deployments
 - [`TESTING_STEPS.md`](TESTING_STEPS.md) — full PowerShell request/response walkthrough
 - [`docs/testing.md`](docs/testing.md) — test plan and result table
+- [`docs/minimum-requirements.md`](docs/minimum-requirements.md) — per-student audit of the brief's minimum checklist
 - [`docs/report.md`](docs/report.md) — final report draft (sections 1–10 + appendix)
 - [`docs/limitations.md`](docs/limitations.md) — known limits and improvements
 - [`docs/individual-statements.md`](docs/individual-statements.md) — the three mandatory contribution statements

@@ -1,19 +1,20 @@
 FINAL RELEASE EVIDENCE
-capturedAt: 2026-11-25T19:27:10.6149989Z
+capturedAt: 2026-11-27T12:06:30.1716351Z
 
 The annotated `v1.0` tag and `bdo-organizer-v1.0.zip` were regenerated from the final
-`main` commit. That commit contains the whole project plus the final requirements/labs
-README and the dedicated testing README. The remote tag is checked with
+`main` commit. That commit contains the whole project, the final requirements/labs README,
+the dedicated testing README, and `docs/minimum-requirements.md` (the per-student audit
+for Habiba, Tasneem and Hala). The remote tag is checked with
 `git ls-remote --tags origin v1.0` after the push.
 
 Source archive: bdo-organizer-v1.0.zip
 - generated with `git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0`
-- 189 entries
+- 190 entries
 - disallowed entries (.data/, dist/, node_modules/, .env, .dev.vars, secrets.env, .git/): 0
 - `infra/secrets.env.example` is included intentionally: it contains placeholders only.
 
 Final verification from the tagged source:
-- npm test: 59 tests, 59 pass, 0 fail (evidence/NPM-TEST.txt)
+- npm test: 59 tests, 59 pass, 0 fail; rerun on 27 Nov 2026 with the same result (evidence/NPM-TEST.txt)
 - local smoke: 22/22 PASS (evidence/LOCAL-SMOKE.txt)
 - Floci/Lab 7 checks: 13 passed, 0 failed (evidence/LAB-07-CHECK.txt)
 - Lab 8 checks: 22 passed, 0 failed (evidence/LAB-08-CHECK.txt)
@@ -22,5 +23,6 @@ Final verification from the tagged source:
 - public browser: final permanent URL screenshots (evidence/PUBLIC-E2E-CAPTURE.txt)
 - browser stale-render regression: PASS against the public URL (evidence/BROWSER-RENDER-REGRESSION.txt)
 
-The demo video, real per-student PR/review evidence, and the instructor Cloudflare/Neon
-approval screenshot remain pending and are not fabricated here.
+The demo video, real per-student PR/review evidence, a live Turnstile widget-token run,
+a separately captured cron firing, and the instructor Cloudflare/Neon approval screenshot
+remain pending and are not fabricated here.

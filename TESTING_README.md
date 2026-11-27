@@ -436,6 +436,7 @@ Expected: `disallowed: 0`. The recorded entry count is in `evidence/RELEASE.txt`
 - [`TESTING_STEPS.md`](TESTING_STEPS.md) — full PowerShell request/response walkthrough
 - [`docs/testing.md`](docs/testing.md) — test case table and evidence checklist
 - [`docs/lab-guide.md`](docs/lab-guide.md) — Cloud Labs tool-by-tool mapping
+- [`docs/minimum-requirements.md`](docs/minimum-requirements.md) — per-student audit of the minimum brief
 - [`docs/report.md`](docs/report.md) — sections 1–10 of the final report
 - [`docs/individual-statements.md`](docs/individual-statements.md) — three contribution statements
 - [`FINALIZATION_README.md`](FINALIZATION_README.md) — hand-over checklist and pending human artefacts
