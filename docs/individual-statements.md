@@ -1,6 +1,6 @@
 # Individual contribution statements
 
-These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (59/59), local + Floci + public Cloudflare/Neon smoke (22/22 each) and the captured files in `evidence/`. The team repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**; `main` and three `feature/*` branches are pushed, and `v1.0` plus `bdo-organizer-v1.0.zip` were created from the verified deployment commit, but there are still no PRs/reviews or real per-student commits; no authorship claim is made for the import commit. Local browser screenshots are `evidence/E2E-04-*.png` and public browser screenshots are `evidence/PUBLIC-E2E-*.png`. Public deployment evidence is `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`. The demo video and real Turnstile credentials remain untested/pending. Replace every remaining `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
+These statements describe **the code that exists in this workspace**. Functional claims are verified by `npm test` (59/59), local + Floci + public Cloudflare/Neon smoke (22/22 each) and the captured files in `evidence/`. The team repository is **https://github.com/TasneemHazem10/blood_donation-cloud-.git**; `main` and three `feature/*` branches are pushed, and `v1.0` plus `bdo-organizer-v1.0.zip` were created from the verified deployment commit, but there are still no PRs/reviews or real per-student commits; no authorship claim is made for the import commit. Local browser screenshots are `evidence/E2E-04-*.png` and public browser screenshots are `evidence/PUBLIC-E2E-*.png`. Public deployment evidence is `evidence/PUBLIC-DEPLOYMENT.txt` and `evidence/PUBLIC-SMOKE.txt`. The demo video remains uncreated by the team. Turnstile is now validated live with Cloudflare's free published dummy test keys (`evidence/TURNSTILE-LIVE-VALIDATION.txt`); no paid or production key was used. Replace every remaining `[PLACEHOLDER]` with a real artefact before submitting the report; see `docs/git-workflow.md`.
 
 Shared evidence placeholders used below:
 
@@ -173,7 +173,7 @@ Verified by local + Floci smoke for 400/401/403/409 cases; the 429 branch is cap
 
 ### 6. Tests
 
-Automated cases DON-01–DON-16 are in `docs/testing.md`: valid registration/login, both roles, `me`, eligibility states, profile update, history, duplicate email, wrong password, missing token, role misuse, invalid profile, rate limit, deletion blocked by booking, Turnstile without token. Most are covered by `tests/donor-api.test.js` and `tests/integration.test.js`; DON-14 and the missing-token branch of DON-16 are now covered by `tests/pending-evidence.test.js` and captured in `evidence/DON-14-rate-limit.txt` and `evidence/DON-16-turnstile-missing-token.txt`. Validation with a real Turnstile widget token is still pending a live test key.
+Automated cases DON-01–DON-16 are in `docs/testing.md`: valid registration/login, both roles, `me`, eligibility states, profile update, history, duplicate email, wrong password, missing token, role misuse, invalid profile, rate limit, deletion blocked by booking, Turnstile without token. Most are covered by `tests/donor-api.test.js` and `tests/integration.test.js`; DON-14 and the missing-token branch of DON-16 are now covered by `tests/pending-evidence.test.js` and captured in `evidence/DON-14-rate-limit.txt` and `evidence/DON-16-turnstile-missing-token.txt`. The live widget-token branch was then exercised from a real browser on the public site: a fresh donor registered (HTTP 201), logged out, and logged in again (HTTP 200), with the Donor Worker accepting the browser-generated token through Cloudflare `siteverify` both times. Evidence: `evidence/TURNSTILE-LIVE-VALIDATION.txt` and `evidence/TURNSTILE-LIVE-*.png`.
 
 Verified by `npm test` (59/59 overall), local + Floci smoke (22/22 each) and the public Workers + Neon run in `evidence/PUBLIC-SMOKE.txt` (register, login, eligibility, 401/409 cases); keep captured output for report evidence.
 
@@ -182,7 +182,7 @@ Verified by `npm test` (59/59 overall), local + Floci smoke (22/22 each) and the
 * Called by Booking: `GET /internal/donors/:id/eligibility?date=<drive date>` before a seat is held, and `POST /internal/donations` on `attended` check-in.
 * Calls Booking `GET /internal/donors/:id/active-bookings` before allowing account deletion.
 * JWT produced here is accepted by the other two services through the shared `verifyToken()` and `JWT_SECRET`; the router performs role checks.
-* Turnstile is verified server-side on register/login while the public site key is injected into the client config.
+* Turnstile is verified server-side on register/login while the public site key is injected into the client config. The widget now re-renders on every auth screen, including after in-app navigation from logout to login; the live round trip is in `evidence/TURNSTILE-LIVE-VALIDATION.txt`.
 
 Verified by local + Floci smoke: check-in `attended` records the donation; capture placeholder remains `[EVIDENCE: Booking request/response to donor service + donation row created after check-in]`.
 
@@ -199,7 +199,7 @@ Evidence placeholder: `[EVIDENCE: code links [COMMIT_HASH_DONOR_CRYPTO], [COMMIT
 ### 9. Significant difficulties and fixes
 
 1. **Worker CPU budget vs password hashing.** 60,000 PBKDF2 iterations are acceptable locally; register/login succeeded repeatedly on the deployed Worker during `evidence/PUBLIC-SMOKE.txt`, so no timeout was observed. Further load testing would still be needed before production (`docs/notes.md`).
-2. **No real Turnstile secret locally.** The code returns `{mode:'development'}` when `TURNSTILE_SECRET` is unset; real evidence requires a test key in Worker secrets and a redacted screenshot.
+2. **Turnstile keys without payment.** Locally the code returns `{mode:'development'}` when `TURNSTILE_SECRET` is unset, so the team can work without keys. For live evidence, Cloudflare's published free dummy PASS keys were used: the secret was set only as a Worker secret and the public site key was injected into the deployed frontend config. The full browser round trip is in `evidence/TURNSTILE-LIVE-VALIDATION.txt`; tokens and secrets were redacted from all tracked evidence.
 3. **Eligibility edge cases (deferral vs interval vs age).** Solved by evaluating rules in a fixed order in `evaluate()` and returning a machine-readable `nextEligibleDate`, including `null` when age makes donation permanently ineligible.
 4. **Deleting a donor with upcoming bookings would orphan booking rows.** Solved by calling Booking's active-bookings endpoint and returning `409` until the donor cancels.
 

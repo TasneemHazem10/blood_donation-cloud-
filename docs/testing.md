@@ -76,7 +76,7 @@ bash infra/deploy-all.sh          # Git Bash; ends with ALL CHECKS PASSED
 | DON-13 | Invalid profile: weight 40 kg or blood type `Z+` | `400 VALIDATION_ERROR` | 400 in DN02/DN05 and SR13 | PASS | request + response |
 | DON-14 | More than 8 logins in 10 minutes | `429 RATE_LIMIT` | Attempts 1–8 returned `401`, attempt 9 returned `429 RATE_LIMIT` | PASS | `evidence/DON-14-rate-limit.txt`, `tests/pending-evidence.test.js` |
 | DON-15 | Delete account with active booking | `409 CONFLICT` | 409 in DN09 | PASS | response + booking row |
-| DON-16 | Turnstile configured but token missing | `401 UNAUTHORIZED` with bot-check message | With `TEST_MODE` off and a dummy secret (the branch returns before any Cloudflare call), register without token returned `401` and created no user | PASS for missing-token branch; real widget-token validation still needs a live Turnstile key | `evidence/DON-16-turnstile-missing-token.txt`, `tests/pending-evidence.test.js` |
+| DON-16 | Turnstile configured but token missing, then live widget token present | Missing token → `401 UNAUTHORIZED`; token accepted → `201` register / `200` login | With `TEST_MODE` off and a dummy secret, register without token returned `401` and created no user. On the public site, a real browser generated a widget token that the Donor Worker accepted through Cloudflare `siteverify` on registration (201) and login (200). | PASS — both the guarded missing-token branch and the live widget-token round trip | `evidence/DON-16-turnstile-missing-token.txt`, `evidence/TURNSTILE-LIVE-VALIDATION.txt`, `evidence/TURNSTILE-LIVE-*.png`, `tests/pending-evidence.test.js` |
 
 ## 4. Booking service — Hala
 
@@ -116,7 +116,7 @@ bash infra/deploy-all.sh          # Git Bash; ends with ALL CHECKS PASSED
 
 ## 6. Evidence guidance for the report
 
-* Generated request/response evidence for DRV-05, DON-14 and DON-16 is committed under [`evidence/`](evidence/); regenerate it with `npm run evidence:capture`. Public deployment, public smoke and public browser evidence are `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-*.png` and `evidence/PUBLIC-E2E-CAPTURE.txt`. Unit/local verification is in `evidence/NPM-TEST.txt` and `evidence/LOCAL-SMOKE.txt`; the stale-render browser regression is in `evidence/BROWSER-RENDER-REGRESSION.txt`; lab-style checks are in `evidence/LAB-07-CHECK.txt`, `evidence/LAB-08-CHECK.txt` and `evidence/LAB-08-K6.txt`.
+* Generated request/response evidence for DRV-05, DON-14 and DON-16 is committed under [`evidence/`](evidence/); regenerate it with `npm run evidence:capture`. Public deployment, public smoke and public browser evidence are `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-*.png` and `evidence/PUBLIC-E2E-CAPTURE.txt`. Unit/local verification is in `evidence/NPM-TEST.txt` and `evidence/LOCAL-SMOKE.txt`; the stale-render browser regression is in `evidence/BROWSER-RENDER-REGRESSION.txt`; the live Turnstile browser run is in `evidence/TURNSTILE-LIVE-VALIDATION.txt` with screenshots `evidence/TURNSTILE-LIVE-*.png`; lab-style checks are in `evidence/LAB-07-CHECK.txt`, `evidence/LAB-08-CHECK.txt` and `evidence/LAB-08-K6.txt`.
 * Put one request and one response per endpoint into the relevant individual statement; use `curl -i` or Postman’s “Copy as cURL”.
 * Save screenshots/JSON files named with the test ID, e.g. `evidence/BOK-06-checkin.png`.
 * Mark a row PASS only from an observed result; `PENDING` above means the capability exists but evidence has not been captured.

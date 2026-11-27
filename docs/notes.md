@@ -65,7 +65,7 @@ These are the build notes and difficulties encountered while assembling the rebu
 
 * **Problem:** no real Cloudflare Turnstile or Resend keys exist locally, and secrets must never be committed.
 * **Fix:** `verifyTurnstile()` returns development mode when no secret is configured and test mode when `TEST_MODE=1`; with a secret it posts to `siteverify` and maps failures to `401`/`502`. `sendEmail()` logs `EMAIL_DEV_LOG` and returns `{status:'dev-log'}` in test/log/no-key mode; Resend is preferred when `RESEND_API_KEY` is set (Brevo is the fallback via `BREVO_API_KEY`), and only when `EMAIL_MODE` is not `log`. Every attempt is stored in `bdo_reminders`.
-* **Status:** dev behaviour verified locally; public Booking Worker uses Resend with `EMAIL_MODE=live` and a controlled `sent` result is captured in `evidence/RESEND-LIVE-EMAIL.txt`. Real Turnstile key evidence remains pending (L6).
+* **Status:** dev behaviour verified locally; public Booking Worker uses Resend with `EMAIL_MODE=live` and a controlled `sent` result is captured in `evidence/RESEND-LIVE-EMAIL.txt`. Turnstile live evidence is now captured with Cloudflare's free published dummy keys in `evidence/TURNSTILE-LIVE-VALIDATION.txt` (L6 closed).
 
 ### Entry 10 — Bundling for Lambda and Workers
 

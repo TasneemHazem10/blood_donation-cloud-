@@ -131,12 +131,12 @@ Nine logical tables (`bdo_users`, `bdo_donors`, `bdo_donations`, `bdo_drives`, `
 | Integration | Used by / workflow | Why | Configuration |
 | --- | --- | --- | --- |
 | OpenStreetMap Nominatim | Drive creation geocodes `venue, city`; `GET /api/drives?near=&radius=` | Real coordinates, distance search and map labels | Public HTTPS endpoint with a descriptive `User-Agent`; results cached in `bdo_geocodes`; no key needed. Live evidence: `evidence/DRV-05-live-geocode.txt` |
-| Cloudflare Turnstile | Donor registration/login | Bot protection before an account is created or a token is issued | `TURNSTILE_SITE_KEY` injected into the SPA config; `TURNSTILE_SECRET` sent only to the Worker/Lambda via env/secret store. `TEST_MODE=1` bypasses it locally; with a secret configured and no token the API returns `401` (`evidence/DON-16-turnstile-missing-token.txt`) |
+| Cloudflare Turnstile | Donor registration/login | Bot protection before an account is created or a token is issued | `TURNSTILE_SITE_KEY` injected into the SPA config; `TURNSTILE_SECRET` sent only to the Worker via a secret (env/secret store on Lambda). `TEST_MODE=1` bypasses it locally; with a secret configured and no token the API returns `401` (`evidence/DON-16-turnstile-missing-token.txt`). Live PASS: free published dummy keys, browser token accepted by `siteverify` on register (201) and login (200) (`evidence/TURNSTILE-LIVE-VALIDATION.txt`) |
 | Resend email API | Booking confirmations, cancellations and daily reminders | Real email delivery in production | `RESEND_API_KEY` (Brevo fallback: `BREVO_API_KEY`) and `EMAIL_FROM` as Worker secrets with `EMAIL_MODE=live`; without a key or with `EMAIL_MODE=log`, messages are written to the audit table and service log. Live evidence: `evidence/RESEND-LIVE-EMAIL.txt` |
 | AWS S3 | Drive report CSV snapshots and the website bucket on Floci | Durable report artefacts and static hosting | `REPORTS_BUCKET` from Floci deployment state; path-style S3 client for the emulator |
 | Neon Postgres + Cloudflare cron | Data layer and 06:00 daily reminder trigger on the public deployment | Managed serverless database and scheduled job | `DATABASE_URL` and Worker secrets; Cron Trigger declared in `services/booking/wrangler.toml`; a scheduled run was not separately captured. Manual Reminder button and `POST /internal/reminders/daily` verified. |
 
-Every credential is read from an environment variable by `shared/config.js`; no secret appears in code, `frontend/js/config.js`, the repository or the evidence files. The Resend live-key run is verified; the Turnstile real-key run remains **PENDING**.
+Every credential is read from an environment variable by `shared/config.js`; no secret appears in code, `frontend/js/config.js`, the repository or the evidence files. The Resend live-key run is verified. Turnstile is also verified live with Cloudflare's free published dummy keys; the browser token, the Worker secret and all JWTs are redacted from every tracked evidence file.
 
 ---
 
@@ -170,12 +170,12 @@ To complete this section: make one real commit per student on their branch with 
 
 ## 9. Testing
 
-`npm test` → **59 tests, 59 pass, 0 fail** (seven test files). Local smoke → **22/22 PASS**. Floci smoke through API Gateway → **22/22 PASS**, report `storage:"s3"`. Public Cloudflare + Neon smoke → **22/22 PASS** with report `storage:"database"`. Evidence files: `evidence/NPM-TEST.txt`, `evidence/LOCAL-SMOKE.txt`, `evidence/DRV-05-live-geocode.txt`, `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt`, `evidence/FLOCI-SMOKE.txt`, `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`, `evidence/PUBLIC-E2E-CAPTURE.txt`, `evidence/LAB-07-CHECK.txt`, `evidence/LAB-08-CHECK.txt`, `evidence/LAB-08-K6.txt`, `evidence/RESEND-LIVE-EMAIL.txt`. Full case-by-case table with actual results and evidence links: [`docs/testing.md`](testing.md).
+`npm test` → **59 tests, 59 pass, 0 fail** (seven test files). Local smoke → **22/22 PASS**. Floci smoke through API Gateway → **22/22 PASS**, report `storage:"s3"`. Public Cloudflare + Neon smoke → **22/22 PASS** with report `storage:"database"`. Evidence files: `evidence/NPM-TEST.txt`, `evidence/LOCAL-SMOKE.txt`, `evidence/DRV-05-live-geocode.txt`, `evidence/DON-14-rate-limit.txt`, `evidence/DON-16-turnstile-missing-token.txt`, `evidence/TURNSTILE-LIVE-VALIDATION.txt`, `evidence/TURNSTILE-LIVE-*.png`, `evidence/FLOCI-SMOKE.txt`, `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, `evidence/PUBLIC-E2E-home.png`, `evidence/PUBLIC-E2E-drives.png`, `evidence/PUBLIC-E2E-CAPTURE.txt`, `evidence/LAB-07-CHECK.txt`, `evidence/LAB-08-CHECK.txt`, `evidence/LAB-08-K6.txt`, `evidence/RESEND-LIVE-EMAIL.txt`. Full case-by-case table with actual results and evidence links: [`docs/testing.md`](testing.md).
 
 | Case group | Covered | Result |
 | --- | --- | --- |
 | DRV-01–DRV-13 (Habiba) | health, create, slots, filters, live `?near=`, report, 400/401/403/404/409 errors | 13/13 PASS |
-| DON-01–DON-16 (Tasneem) | register, both roles, login, `me`, eligibility, profile, history, 400/401/403/409/429, Turnstile missing-token branch | 15/16 PASS; real Turnstile widget token PENDING |
+| DON-01–DON-16 (Tasneem) | register, both roles, login, `me`, eligibility, profile, history, 400/401/403/409/429, Turnstile missing-token branch and live widget-token round trip | 16/16 PASS — live browser token accepted on register (201) and login (200) with free published dummy keys |
 | BOK-01–BOK-19 (Hala) | book, list, cancel, check-in, reminders, internal routes, 400/401/403/409/502 | 19/19 PASS |
 | E2E-01–E2E-06 | full journey, auth removal, drive cancellation, browser footer, reminders, public deployment | E2E-01–E2E-06 PASS. Local browser footer in `evidence/E2E-04-home.png`; public browser in `evidence/PUBLIC-E2E-*.png`; public 22/22 in `evidence/PUBLIC-SMOKE.txt` |
 
@@ -197,7 +197,7 @@ Open items with reason and proposed improvement are tracked in [`docs/limitation
 | In-memory login rate limiter and in-process reminder state | Simplifies three-runtime compatibility | Add Cloudflare WAF rate limiting and a shared durable store |
 | DynamoDB/Neon `search()` uses scan/filter rather than indexes | Document-model simplicity | Add GSIs/columns and pagination |
 | Recovery window if the process crashes between reserve and insert | Compensating release cannot run after a hard crash | Make reservation idempotent with a TTL hold |
-| Real Turnstile widget token not exercised | No Turnstile keys; Resend live send is verified | Add a Turnstile test key as a secret and capture redacted evidence |
+| Domain-bound production Turnstile widget not configured | Live validation used Cloudflare's free published dummy keys, not a domain-bound widget | Optional: create a free Turnstile widget in Cloudflare and replace the dummy site/secret keys; no payment is required |
 
 ---
 

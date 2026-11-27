@@ -18,7 +18,7 @@ below is claimed as done until you perform it.
 | `npm test` | ✅ 59 tests, 59 pass, 0 fail |
 | Local smoke / Floci smoke | ✅ 22/22 each; repo-owned Docker Compose Floci `ALL CHECKS PASSED` (`evidence/FLOCI-DOCKER.txt`, `evidence/FLOCI-SMOKE.txt`) |
 | Public Cloudflare Workers + Neon | ✅ live at `https://bdo-organizer.bdo-organizer.workers.dev`; public smoke 22/22 |
-| Evidence files | ✅ `evidence/NPM-TEST.txt`, `LOCAL-SMOKE.txt`, `DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `E2E-04-*.png`, `FLOCI-DOCKER.txt`, `FLOCI-SMOKE.txt`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png`, `PUBLIC-E2E-CAPTURE.txt`, `BROWSER-RENDER-REGRESSION.txt`, `LAB-07-CHECK.txt`, `LAB-08-CHECK.txt`, `LAB-08-K6.txt`, `lab-04-postman-collection.json` |
+| Evidence files | ✅ `evidence/NPM-TEST.txt`, `LOCAL-SMOKE.txt`, `DRV-05-live-geocode.txt`, `DON-14-rate-limit.txt`, `DON-16-turnstile-missing-token.txt`, `TURNSTILE-LIVE-VALIDATION.txt`, `TURNSTILE-LIVE-*.png`, `E2E-04-*.png`, `FLOCI-DOCKER.txt`, `FLOCI-SMOKE.txt`, `PUBLIC-DEPLOYMENT.txt`, `PUBLIC-SMOKE.txt`, `PUBLIC-E2E-*.png`, `PUBLIC-E2E-CAPTURE.txt`, `BROWSER-RENDER-REGRESSION.txt`, `LAB-07-CHECK.txt`, `LAB-08-CHECK.txt`, `LAB-08-K6.txt`, `lab-04-postman-collection.json` |
 | Report draft | ✅ `docs/report.md` sections 1–10 + appendix |
 | Three 9-item statements | ✅ `docs/individual-statements.md` |
 
@@ -45,9 +45,12 @@ REPO_PUBLIC=yes/no          # if no, invite the module leader as collaborator
 VIDEO_URL=                  # Google Drive / YouTube link, "anyone with the link can view"
 ```
 
-Optional future upgrade: real Turnstile test keys. The missing-token branch is already
-evidenced. The public deployment uses Resend live email with a git-ignored API key; local
-development still uses `TEST_MODE=1` and `EMAIL_MODE=log`.
+Turnstile is already validated on the public deployment with Cloudflare's free published
+dummy PASS keys; the live browser round trip is in `evidence/TURNSTILE-LIVE-VALIDATION.txt`.
+A domain-bound production widget is optional and can be added later for free in Cloudflare;
+do not present the dummy keys as production credentials. The public deployment uses Resend
+live email with a git-ignored API key; local development still uses `TEST_MODE=1` and
+`EMAIL_MODE=log`.
 
 ---
 
@@ -122,7 +125,7 @@ Important deployment notes:
 * The Workers are deployed to the **claimed permanent Cloudflare account** via `wrangler login`. Redeploy with `npx wrangler login` if credentials change; the public URLs are pinned in the docs and evidence.
 * All three `wrangler.toml` files include `compatibility_flags = ["global_fetch_strictly_public"]`; without it Booking → Drive/Donor calls fail with Cloudflare error `1042`. Cross-service calls now use Cloudflare service bindings (`env.BOOKING` in Drive; `env.DRIVE` and `env.DONOR` in Booking), which also avoids a `522` from Worker-to-Worker public fetches on the preview account.
 * The `0 6 * * *` trigger is declared in `services/booking/wrangler.toml`. A scheduled run was not separately captured; the manual Reminder button and `POST /internal/reminders/daily` are verified.
-* Turnstile remains unconfigured. Resend live email is enabled for the public Booking Worker with `EMAIL_MODE=live`; the key is a Worker secret and `evidence/RESEND-LIVE-EMAIL.txt` records a controlled `sent` result. No secret, claim token or invite code is stored in the repository.
+* Turnstile is configured on the public Donor Worker with Cloudflare's free published dummy PASS keys; the live widget-token round trip is captured in `evidence/TURNSTILE-LIVE-VALIDATION.txt`. Resend live email is enabled for the public Booking Worker with `EMAIL_MODE=live`; the key is a Worker secret and `evidence/RESEND-LIVE-EMAIL.txt` records a controlled `sent` result. No secret, claim token or invite code is stored in the repository.
 
 ---
 
@@ -144,7 +147,7 @@ Important deployment notes:
 
 | ID | What to do | Why |
 |---|---|---|
-| DON-16 live | Add a real Turnstile test key as a Worker secret, load the SPA, complete the widget, register once | The missing-token branch is evidenced; real widget validation is not |
+| DON-16 live | DONE — free published dummy PASS keys were set as Worker secrets, the SPA loaded, the widget generated tokens in a real browser, and registration (201) plus login (200) were captured with redacted evidence in `evidence/TURNSTILE-LIVE-VALIDATION.txt` | Closes Tasneem's external-API evidence gap without payment |
 | Email live | ✅ Done with `RESEND_API_KEY`, `EMAIL_FROM` and `EMAIL_MODE=live`; controlled send captured in `evidence/RESEND-LIVE-EMAIL.txt` (`status:sent`, `provider:resend`, message id) | — |
 | E2E-06 | DONE — full smoke flow run with `BDO_API_URL=''` and the three public `BDO_*_URL` values; output in `evidence/PUBLIC-SMOKE.txt` | Public deployed integration is required |
 | Per-endpoint evidence | One `curl -i` or Postman request/response per row of `docs/api.md` | Report sections 3 and 9 |

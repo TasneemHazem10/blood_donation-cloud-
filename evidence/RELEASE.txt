@@ -1,16 +1,17 @@
 FINAL RELEASE EVIDENCE
-capturedAt: 2026-11-27T12:33:59.8277728Z
+capturedAt: 2026-11-27T13:06:43.7820594Z
 
 The annotated `v1.0` tag and `bdo-organizer-v1.0.zip` were regenerated from the final
 `main` commit. That commit contains the whole project, the requirements/labs README with
 the consolidated per-student contribution table, the dedicated testing README,
-`docs/minimum-requirements.md` (the per-student audit for Habiba, Tasneem and Hala), and
-the full nine-item statements in `docs/individual-statements.md`. The remote tag is
-checked with `git ls-remote --tags origin v1.0` after the push.
+`docs/minimum-requirements.md` (the per-student audit for Habiba, Tasneem and Hala), the
+full nine-item statements in `docs/individual-statements.md`, and the live Turnstile
+evidence for Tasneem. The remote tag is checked with `git ls-remote --tags origin v1.0`
+after the push.
 
 Source archive: bdo-organizer-v1.0.zip
 - generated with `git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0`
-- 190 entries
+- 195 entries
 - disallowed entries (.data/, dist/, node_modules/, .env, .dev.vars, secrets.env, .git/): 0
 - `infra/secrets.env.example` is included intentionally: it contains placeholders only.
 
@@ -23,7 +24,10 @@ Final verification from the tagged source:
 - public Cloudflare Workers + Neon smoke: 22/22 PASS (evidence/PUBLIC-SMOKE.txt)
 - public browser: final permanent URL screenshots (evidence/PUBLIC-E2E-CAPTURE.txt)
 - browser stale-render regression: PASS against the public URL (evidence/BROWSER-RENDER-REGRESSION.txt)
+- live Turnstile validation: PASS with Cloudflare's free published dummy keys; register 201,
+  login 200, token accepted by Donor Worker siteverify, 0 browser exceptions
+  (evidence/TURNSTILE-LIVE-VALIDATION.txt, evidence/TURNSTILE-LIVE-*.png)
 
-The demo video, real per-student PR/review evidence, a live Turnstile widget-token run,
-a separately captured cron firing, and the instructor Cloudflare/Neon approval screenshot
-remain pending and are not fabricated here.
+The demo video, real per-student PR/review evidence, a separately captured cron firing,
+and the instructor Cloudflare/Neon approval screenshot remain pending and are not
+fabricated here. Cloudflare Turnstile is no longer pending.

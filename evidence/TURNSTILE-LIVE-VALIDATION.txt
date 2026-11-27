@@ -1,0 +1,25 @@
+Turnstile live validation — PASS
+Captured: 2026-11-27T13:01:55.495Z
+URL: https://bdo-organizer.bdo-organizer.workers.dev/#/register
+Method: headless Chrome driven through the public site via Chrome DevTools Protocol
+Public site key: 1x00000000000000000000AA (Cloudflare published free dummy PASS key)
+Turnstile secret: REDACTED (set only as a Donor Worker secret)
+Browser-generated token: REDACTED (never written to evidence)
+Test account: fresh donor account created for this run (redacted)
+Registration widget token generated: YES
+Registration response: HTTP 201
+Donor Worker siteverify on register: PASS (token accepted)
+Login widget re-rendered after in-app navigation: YES
+Login widget token generated: YES
+Login response: HTTP 200
+Donor Worker siteverify on login: PASS (token accepted)
+Profile rendered after registration: YES
+Profile rendered after login: YES
+Uncaught browser runtime exceptions: 0
+Payment / paid plan / production key: NOT USED
+
+Screenshots:
+- evidence/TURNSTILE-LIVE-register.png
+- evidence/TURNSTILE-LIVE-profile.png
+- evidence/TURNSTILE-LIVE-login.png
+- evidence/TURNSTILE-LIVE-after-login.png

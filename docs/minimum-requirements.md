@@ -1,6 +1,6 @@
 # Minimum requirements — per-student audit
 
-Audit date: **27 Nov 2026**. Method: source/route inspection, `npm test` rerun today (**59 tests, 59 pass, 0 fail**) and the existing local/Floci/public smoke evidence. This document answers the brief's minimum checklist **for each owner**. It does not claim unrecorded student Git history or a demo video; those remain human artefacts listed in [`FINALIZATION_README.md`](../FINALIZATION_README.md).
+Audit date: **27 Nov 2026**, updated after the live Turnstile run. Method: source/route inspection, `npm test` rerun today (**59 tests, 59 pass, 0 fail**), the existing local/Floci/public smoke evidence and a real-browser Turnstile validation on the public site. This document answers the brief's minimum checklist **for each owner**. It does not claim unrecorded student Git history or a demo video; those remain human artefacts listed in [`FINALIZATION_README.md`](../FINALIZATION_README.md).
 
 Status legend: **MET** = implemented and evidenced; **MET (caveat)** = code is integrated but one live credential/artefact is still pending; **PENDING** = not done and not claimed.
 
@@ -15,7 +15,7 @@ Status legend: **MET** = implemented and evidenced; **MET (caveat)** = code is i
 | REST API with proper methods, validation and status codes | Shared router uses `GET/POST/PUT/PATCH/DELETE`, JWT/internal-key guards, JSON body limits and one error envelope (`400/401/403/404/409/413/429/500/502`). | `shared/router.js`, `shared/errors.js`, `docs/api.md`, `evidence/NPM-TEST.txt` |
 | Persistent cloud database with CRUD | Nine `bdo_*` JSONB tables in Neon; SQLite locally/tests, DynamoDB on Floci through the same store interface. Create/read/update/delete/search are exercised across the services. | `infra/db/schema.sql`, `shared/store/`, `evidence/PUBLIC-SMOKE.txt` (22/22) |
 | At least 2 user roles, enforced in the backend | `organizer` and `donor`. `shared/router.js` verifies the JWT and checks `roles` server-side; controllers add owner checks. Hiding UI buttons is not the access control. | `shared/router.js`, test cases DR03/DR05/DR09, DN03/DN05, BK02/BK05/BK07 |
-| External API in a real workflow | Nominatim geocoding (Habiba), Cloudflare Turnstile (Tasneem), Resend/Brevo email (Hala), plus S3 report snapshots and cross-service calls. | `evidence/DRV-05-live-geocode.txt`, `evidence/DON-16-turnstile-missing-token.txt`, `evidence/RESEND-LIVE-EMAIL.txt` |
+| External API in a real workflow | Nominatim geocoding (Habiba), Cloudflare Turnstile (Tasneem), Resend/Brevo email (Hala), plus S3 report snapshots and cross-service calls. | `evidence/DRV-05-live-geocode.txt`, `evidence/DON-16-turnstile-missing-token.txt`, `evidence/TURNSTILE-LIVE-VALIDATION.txt`, `evidence/RESEND-LIVE-EMAIL.txt` |
 | Cloud deployment, not localhost only | Three public Cloudflare Workers + static-asset SPA + Neon, free/educational tier. Floci/localhost is lab evidence only. | `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt`, URLs in [`README.md`](../README.md) §6 |
 
 ---
@@ -45,10 +45,10 @@ Status legend: **MET** = implemented and evidenced; **MET (caveat)** = code is i
 | REST API + validation/status | `POST/GET/PUT/DELETE`; email/password/profile/date validation; PBKDF2+HS256 JWT; `400/401/403/409/429/502`. | `services/donor/services/eligibility.js`, `shared/crypto.js`, DON01–DON16 in [`docs/testing.md`](testing.md) |
 | Persistent DB CRUD | `bdo_users` (create/read/delete), `bdo_donors` (create/read/update/delete), `bdo_donations` (create/read/search/delete on account removal). | `docs/individual-statements.md` §2.4, `shared/store/` |
 | 2 roles enforced in backend | Organizer registration requires the server-side invite (`409` without it); donor-only profile/eligibility/donation/delete endpoints call `requireDonor()` and return `403` for an organizer token. Role is read from the verified JWT, not the request body. | `services/donor/controllers/auth.js`, `services/donor/controllers/donors.js`, DN03/DN05 |
-| External API in workflow | **Cloudflare Turnstile** `siteverify` is called inside register/login before an account/token is issued. Missing token with a configured secret returns `401`; upstream failure returns `502`. | **MET (caveat)** — `evidence/DON-16-turnstile-missing-token.txt` proves the guarded branch. A real widget-token round trip needs a Turnstile test key and is still PENDING; no result is fabricated. |
+| External API in workflow | **Cloudflare Turnstile** `siteverify` is called inside register/login before an account/token is issued. Missing token with a configured secret returns `401`; upstream failure returns `502`. | **MET** — `evidence/DON-16-turnstile-missing-token.txt` proves the guarded branch and `evidence/TURNSTILE-LIVE-VALIDATION.txt` proves the live browser token was accepted on registration (201) and login (200). Cloudflare's free published dummy keys were used, not paid/production keys. |
 | Cloud deployment | Donor Worker `https://bdo-donor.bdo-organizer.workers.dev` backed by Neon; shared crypto works in Node 22 and Workers. | `evidence/PUBLIC-DEPLOYMENT.txt`, `evidence/PUBLIC-SMOKE.txt` |
 
-**Verdict: MET (caveat).** The external API is genuinely integrated into the auth workflow, but the live widget-token evidence needs real Turnstile test keys. The missing-token branch is already evidenced and is not being claimed as a full widget validation.
+**Verdict: MET — exceeds minimum.** The external API is integrated into the auth workflow and the live widget-token round trip is now evidenced end-to-end in a real browser on the public Cloudflare site, using free published dummy test keys. The separate missing-token branch remains evidenced too.
 
 ---
 
@@ -70,7 +70,7 @@ Status legend: **MET** = implemented and evidenced; **MET (caveat)** = code is i
 
 ## 4. Honest caveats to keep in the submission
 
-1. **Tasneem / Turnstile:** do not write “live Turnstile validated” until a real widget token is used. State the exact truth: code + missing-token branch are implemented and evidenced; live widget validation is pending keys.
+1. **Tasneem / Turnstile:** live validation is now PASS, but state the exact truth: Cloudflare's published **dummy test keys** were used. The widget token was generated in a real browser and accepted by the Donor Worker through Cloudflare `siteverify`; no paid plan or production widget key was used.
 2. **Hala / cron:** do not write “scheduled run captured”. The trigger exists and the manual equivalent is PASS.
 3. **All three / individual Git history:** the repository has real code and branches, but no fabricated per-student commits/PRs/reviews. Each student must create their own from their own Git identity.
 4. **All three / demo video:** ≤5-minute recording from the public URL is still a human-created artefact.

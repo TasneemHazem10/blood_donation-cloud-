@@ -215,7 +215,7 @@ All errors use the shared envelope `{"error":{"code":"...","message":"..."}}`.
 | Turnstile missing token | with a Turnstile secret configured, register without a token | `401` bot-check message |
 | Upstream dependency | stop a dependent API during an internal call | `502 UPSTREAM_ERROR` |
 
-The rate-limit and Turnstile missing-token branches are already captured in `evidence/DON-14-rate-limit.txt` and `evidence/DON-16-turnstile-missing-token.txt`; regenerate them with `npm run evidence:capture`. A real Turnstile widget token has **not** been exercised.
+The rate-limit and Turnstile missing-token branches are already captured in `evidence/DON-14-rate-limit.txt` and `evidence/DON-16-turnstile-missing-token.txt`; regenerate them with `npm run evidence:capture`. A real Turnstile widget token has also been exercised on the public Cloudflare site: the browser-generated token was accepted on registration (201) and login (200) using Cloudflare's free published dummy keys. Evidence: `evidence/TURNSTILE-LIVE-VALIDATION.txt` and `evidence/TURNSTILE-LIVE-*.png`.
 
 ---
 
@@ -420,9 +420,10 @@ Expected: `disallowed: 0`. The recorded entry count is in `evidence/RELEASE.txt`
 
 ## 9. Known pending tests (do not claim as PASS)
 
+Live Turnstile widget-token validation is **no longer pending**: it passed on the public site with Cloudflare's free published dummy keys (`evidence/TURNSTILE-LIVE-VALIDATION.txt`). Do not claim production keys were used.
+
 | Item | Reality |
 |---|---|
-| Live Turnstile widget token | Only the missing-token branch is exercised and evidenced. |
 | Cron Trigger scheduled run | Declared (`0 6 * * *`) and the manual/reminder route is tested; a scheduled firing was not separately captured. |
 | Demo video ≤5 minutes | Human-created artefact from the public URL; link still `[VIDEO_URL]` in the report. |
 | Per-student PRs/reviews and real identities | Cannot be fabricated; see [`FINALIZATION_README.md`](FINALIZATION_README.md) section 2 and `.github/CODEOWNERS`. |

@@ -9,14 +9,24 @@ async function botToken() {
   try { return await window.turnstile.getResponse(); } catch { return ''; }
 }
 
+function renderTurnstile() {
+  const key = (window.BDO && window.BDO.turnstileSiteKey) || '';
+  if (!key || !window.turnstile || !document.querySelector('.cf-turnstile')) return;
+  window.turnstile.render('.cf-turnstile', { sitekey: key });
+}
+
 function loadTurnstile() {
   const key = (window.BDO && window.BDO.turnstileSiteKey) || '';
-  if (!key || document.querySelector('script[data-turnstile]')) return;
+  if (!key) return;
+  if (document.querySelector('script[data-turnstile]')) {
+    renderTurnstile();
+    return;
+  }
   const script = document.createElement('script');
   script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
   script.async = true;
   script.dataset.turnstile = '1';
-  script.onload = () => window.turnstile && window.turnstile.render('.cf-turnstile', { sitekey: key });
+  script.onload = renderTurnstile;
   document.head.appendChild(script);
 }
 
