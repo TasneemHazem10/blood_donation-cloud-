@@ -61,6 +61,38 @@ Student ownership:
 - **Tasneem** – Donor and Eligibility (`services/donor/`)
 - **Hala** – Booking and Reminder (`services/booking/`)
 
+The full nine-item statements are in [`docs/individual-statements.md`](docs/individual-statements.md) and the requirement-by-requirement audit is in [`docs/minimum-requirements.md`](docs/minimum-requirements.md). The submission-ready summary is below.
+
+---
+
+## Per-student contribution details
+
+| Student / owned component | Frontend work connected to real backend | Backend functions + REST routes | Database + role enforcement | External API + cloud deployment | Tests / evidence / status |
+|---|---|---|---|---|---|
+| **Tasneem** — Donor & Eligibility Service (`services/donor/`) | `frontend/js/views/auth.js`: login form, registration form, role switch, donor fields, organizer invite field, Turnstile widget loading and token collection.<br>`frontend/js/views/donor.js`: profile page, eligibility banner, donation timeline, edit profile and delete account.<br>`frontend/js/views/drives.js`: donor-only “Book seat” button logic. All data comes from the Donor API. | Functions: `register`, `login`, `me`, `getProfile`, `updateProfile`, `getEligibility`, `getDonations`, `deleteAccount`, internal `eligibility`, `recordDonation`, `getDonor`, `evaluate`, `validateProfile`, PBKDF2/JWT crypto helpers, Turnstile verification and rate limiting.<br>Routes: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `GET/PUT/DELETE /api/donors/me`, `GET /api/donors/me/eligibility`, `GET /api/donors/me/donations`, plus internal donor/donation routes. | Tables: `bdo_users` create/read/delete, `bdo_donors` create/read/update/delete, `bdo_donations` create/read/search/delete.<br>Roles: organizer registration requires the server-side invite code; donor profile/eligibility/donation/delete endpoints reject organizer tokens with `403`; role comes from the verified JWT, not the client. Password hash is never returned. | External API: Cloudflare Turnstile `siteverify` integrated into register/login; missing token returns `401`, upstream failure returns `502`.<br>Cross-service calls: Booking checks active bookings before donor deletion and anonymizes booking history.<br>Deployed as `https://bdo-donor.bdo-organizer.workers.dev` backed by Neon; the same controllers also run locally and on Floci Lambda. | `DON-01`–`DON-16` in `docs/testing.md`; 59/59 overall tests; public smoke 22/22; rate-limit evidence `evidence/DON-14-rate-limit.txt`; Turnstile missing-token evidence `evidence/DON-16-turnstile-missing-token.txt`.<br>**Status: MET with caveat** — Turnstile code is integrated and the guarded branch is evidenced, but live widget-token validation is still pending. |
+| **Habiba** — Drive Management Service (`services/drive/`) | `frontend/js/views/organizer.js`: organizer dashboard, “New drive” form, slots table, Bookings tab, Report tab, Emails tab, cancel/delete controls. Every screen action calls the Drive/Booking APIs. | Functions: `createDrive`, `listDrives`, `getDrive`, `updateDrive`, `changeStatus`, `deleteDrive`, `createSlot`, `updateSlot`, `deleteSlot`, `getReport`, `listReports`, internal `reserveSeat`, `releaseSeat`, plus `validateDriveInput`, `validateSlotInput`, `assertNoOverlap`, `filterDrives`, `filterNear`, `buildReport`.<br>15 routes covering drive CRUD, slot CRUD, status changes, reports and internal reserve/release. | Tables: `bdo_drives` CRUD + city/status/date search, `bdo_slots` CRUD + atomic seat reservation/release, `bdo_reports` create/list, `bdo_geocodes` cache.<br>Roles: organizer-only create/update/status/delete/slots/reports; `assertOwner()` stops another organizer; donors can read listings. Internal routes require `x-internal-key`. | External API: OpenStreetMap Nominatim geocoding during drive creation and `?near=` radius search, cached in `bdo_geocodes`; S3 CSV report snapshot on Floci.<br>Cross-service calls: Drive calls Booking for stats/cancellations; Booking calls Drive for lookup and seat reserve/release.<br>Deployed as `https://bdo-drive.bdo-organizer.workers.dev` backed by Neon. | `DRV-01`–`DRV-13` in `docs/testing.md`; 59/59 overall tests; local/Floci/public smoke 22/22; live geocode evidence `evidence/DRV-05-live-geocode.txt`; public E2E screenshots.<br>**Status: MET — exceeds minimum.** |
+| **Hala** — Booking & Reminder Service (`services/booking/`) | `frontend/js/views/drives.js`: slot availability and donor “Book seat” action.<br>`frontend/js/views/donor.js`: “My bookings”, status badges and Cancel button.<br>`frontend/js/views/organizer.js`: organizer Bookings tab with Attended/No-show and Emails tab with reminder log and send button. | Functions: `createBooking`, `myBookings`, `driveBookings`, `cancelBooking`, `checkIn`, `sendReminders`, `listReminders`, internal `stats`, `cancelDriveBookings`, `activeBookings`, `anonymizeDonor`, `dailyReminders`, plus `assertBookable`, `assertCanCancel`, `assertCanCheckIn`, `countStats`, `bookingKey`, notification templates.<br>Routes: booking create/list/mine/cancel/check-in, reminder send/list and internal service routes. | Tables: `bdo_bookings` create/read/update via CAS state transitions, search by donor/drive, deterministic id `driveId__donorId`; `bdo_reminders` create/read/update/search with idempotency key.<br>Roles: donor creates/cancels only own booking; organizer lists drive bookings, checks in, sends/reads reminders; owner checks and internal key enforced server-side. | External API: Resend transactional email with Brevo fallback; every email attempt stored in `bdo_reminders`.<br>Cross-service calls: Booking calls Drive for drive lookup/seat reserve/release and Donor for eligibility/donation recording.<br>Scheduling: Floci EventBridge and Cloudflare Cron Trigger declared; manual reminder route verified.<br>Deployed as `https://bdo-booking.bdo-organizer.workers.dev` backed by Neon. | `BOK-01`–`BOK-19` in `docs/testing.md`; 59/59 overall tests; local/Floci/public smoke 22/22; reminder idempotency 1 sent + 1 skipped; live Resend evidence `evidence/RESEND-LIVE-EMAIL.txt`.<br>**Status: MET — exceeds minimum** — cron trigger exists but a separate scheduled firing was not captured. |
+
+### Shared / team-level work
+
+| Area | What was done |
+|---|---|
+| Shared backend foundation | `shared/router.js`, `shared/errors.js`, `shared/http.js`, `shared/validate.js`, `shared/crypto.js`, `shared/serviceClient.js`, store abstraction for SQLite/DynamoDB/Neon. |
+| Frontend foundation | SPA routing, API client, session handling, live service-status footer, stale-render guard, null-safe UI helpers. |
+| Cloud deployment | Three public Cloudflare Workers + static SPA + Neon database; Floci Docker Compose lab deployment with DynamoDB, Lambda, S3, IAM, CloudWatch and API Gateway. |
+| Testing/evidence | `npm test` 59/59; local, Floci and public smoke 22/22 each; k6, Lab 7 and Lab 8 checks; browser render regression; public screenshots. |
+| Documentation | `README.md`, `TESTING_README.md`, `docs/minimum-requirements.md`, `docs/individual-statements.md`, `docs/report.md`, `docs/testing.md`, `docs/lab-guide.md`. |
+
+### Still pending for all three
+
+| Item | Status |
+|---|---|
+| Real per-student commits, PRs and reviews | Pending — must be done with real GitHub identities |
+| Demo video ≤5 minutes from public URL | Pending |
+| Live Turnstile widget-token run for Tasneem | Pending |
+| Separately captured cron firing for Hala | Pending |
+| Instructor Cloudflare/Neon approval screenshot | Pending |
+
 ---
 
 ## 2. Prerequisites

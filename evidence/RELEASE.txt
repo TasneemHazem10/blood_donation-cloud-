@@ -1,11 +1,12 @@
 FINAL RELEASE EVIDENCE
-capturedAt: 2026-11-27T12:06:30.1716351Z
+capturedAt: 2026-11-27T12:33:59.8277728Z
 
 The annotated `v1.0` tag and `bdo-organizer-v1.0.zip` were regenerated from the final
-`main` commit. That commit contains the whole project, the final requirements/labs README,
-the dedicated testing README, and `docs/minimum-requirements.md` (the per-student audit
-for Habiba, Tasneem and Hala). The remote tag is checked with
-`git ls-remote --tags origin v1.0` after the push.
+`main` commit. That commit contains the whole project, the requirements/labs README with
+the consolidated per-student contribution table, the dedicated testing README,
+`docs/minimum-requirements.md` (the per-student audit for Habiba, Tasneem and Hala), and
+the full nine-item statements in `docs/individual-statements.md`. The remote tag is
+checked with `git ls-remote --tags origin v1.0` after the push.
 
 Source archive: bdo-organizer-v1.0.zip
 - generated with `git archive --format=zip --output=bdo-organizer-v1.0.zip v1.0`
